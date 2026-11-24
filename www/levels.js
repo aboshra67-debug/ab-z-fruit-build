@@ -16,24 +16,24 @@
 
   function genLevel(n) {
     n = Math.max(1, Math.min(MAX_LEVEL, n | 0));
-    var count = evenInt(8 + 1.45 * (n - 1));          // fruits to clear (about 100 at lvl 65, 200 at lvl 135, 300 at lvl 200+)
+    var count = evenInt(20 + 4.4 * (n - 1));          // ~20 at lvl 1, ~42 at lvl 6, ~100 at lvl 19, ~200 at lvl 42, 300 from lvl 64
     count = Math.min(count, 300);
     var pairs = count / 2;
-    var types = Math.min(3 + Math.floor((n - 1) / 6), 18);
+    var types = Math.min(5 + Math.floor((n - 1) / 3), 22);
     types = Math.min(types, pairs);
-    var cap = n < 12 ? 5 : (n < 40 ? 4 : 3);           // how many fruits fit in the channel
+    var cap = 4;                                       // the channel always holds exactly 4 fruits
     var boss = (n >= 20 && n % 10 === 0);
     var cfg = {
       n: n, count: count, types: types, cap: cap, boss: boss,
       world: Math.floor((n - 1) / 20) % 5,
-      rMax: n < 4 ? 40 : 38,
-      wood: n >= 8 ? Math.min(4, 1 + Math.floor((n - 8) / 25)) : 0,
-      rock: n >= 14 ? Math.min(4, 1 + Math.floor((n - 14) / 30)) : 0,
+      rMax: 28,
+      wood: n >= 6 ? Math.min(5, 1 + Math.floor((n - 6) / 20)) : 0,
+      rock: n >= 11 ? Math.min(5, 1 + Math.floor((n - 11) / 24)) : 0,
       mystery: n >= 15 ? Math.min(Math.floor(pairs * 0.15), 1 + Math.floor((n - 15) / 10)) : 0,
-      cage: n >= 10 ? Math.min(10, 1 + Math.floor((n - 10) / 12)) : 0,
-      bee: n >= 28 ? (n >= 150 ? 2 : 1) : 0,
-      bird: n >= 35 ? 1 + Math.floor(n / 90) : 0,
-      bomb: n >= 45 ? Math.min(6, 1 + Math.floor((n - 45) / 30)) : 0,
+      cage: n >= 8 ? Math.min(12, 1 + Math.floor((n - 8) / 10)) : 0,
+      bee: n >= 22 ? (n >= 150 ? 2 : 1) : 0,
+      bird: n >= 28 ? 1 + Math.floor(n / 90) : 0,
+      bomb: n >= 35 ? Math.min(6, 1 + Math.floor((n - 35) / 25)) : 0,
       seed: n * 7919 + 13
     };
     if (boss) { cfg.wood = Math.min(5, cfg.wood + 1); cfg.bomb += 1; cfg.cage += 1; }

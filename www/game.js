@@ -175,7 +175,7 @@
       return null;
     }
     function blockAround(c, rad) { for (var i = 0; i < cells.length; i++) { if (!usedCells[i]) { var dx = cells[i].x - c.x, dy = cells[i].y - c.y; if (dx * dx + dy * dy < rad * rad) usedCells[i] = 1; } } }
-    var corridor = function (c) { return c.x > W * 0.2 && c.x < W * 0.8 && c.y > g.topY + (g.mouthY - g.topY) * 0.22 && c.y < groundY(g, c.x) - g.r * 6.2; };
+    var corridor = function (c) { return c.x > W * 0.2 && c.x < W * 0.8 && Math.abs(c.x - W / 2) > g.r * 4.5 && c.y > g.topY + (g.mouthY - g.topY) * 0.22 && c.y < groundY(g, c.x) - g.r * 6.2; };
     var i2;
     for (i2 = 0; i2 < cfg.wood; i2++) {
       var c = pickCell(corridor) || pickCell(); if (!c) break;
@@ -194,9 +194,11 @@
 
     // fruits: pairs of the same kind
     var pairs = cfg.count / 2, kinds = [];
-    var typePool = []; for (var tt = 0; tt < cfg.types; tt++) typePool.push(tt);
-    var perType = []; for (var q = 0; q < cfg.types; q++) perType.push(0);
-    for (var p = 0; p < pairs; p++) { var tk = p < cfg.types ? p : Math.floor(rng() * cfg.types); kinds.push(tk); }
+    var chosen = [], usedFam = {};      // pick `types` different fruit families (whole or sliced version)
+    shuffle(FR.map(function (f, i) { return i; }), rng).forEach(function (fi) {
+      var fm = FR[fi].f || FR[fi].n; if (usedFam[fm] || chosen.length >= cfg.types) return; usedFam[fm] = 1; chosen.push(fi);
+    });
+    for (var p = 0; p < pairs; p++) { var tk = p < chosen.length ? p : Math.floor(rng() * chosen.length); kinds.push(chosen[tk]); }
     var mysteryLeft = cfg.mystery;
     var ents = [];
     shuffle(kinds, rng).forEach(function (k, idx) {
@@ -208,8 +210,20 @@
     }
     shuffle(ents, rng);
     var id = 1;
+    // hanging fruits are packed in a few dense clusters (like the original game)
+    var nCl = clamp(2 + Math.floor(ents.length / 28), 2, 7), centers = [];
+    for (var cl = 0; cl < nCl; cl++) { var cc = cells[Math.floor(rng() * cells.length)]; if (cc) centers.push(cc); }
+    var order = [];
+    for (var ci = 0; ci < cells.length; ci++) {
+      if (usedCells[ci]) continue; var md = 1e9;
+      for (var cj = 0; cj < centers.length; cj++) { var ddx = cells[ci].x - centers[cj].x, ddy = cells[ci].y - centers[cj].y; md = Math.min(md, Math.sqrt(ddx * ddx + ddy * ddy)); }
+      order.push({ i: ci, d: md * (0.85 + rng() * 0.3) });
+    }
+    order.sort(function (a, b) { return a.d - b.d; });
+    var oi = 0;
     ents.forEach(function (e) {
-      var c = pickCell(); if (!c) return;
+      var c = null; while (oi < order.length && !c) { var oc = order[oi++]; if (!usedCells[oc.i]) { usedCells[oc.i] = 1; c = cells[oc.i]; } }
+      if (!c) return;
       e.id = id++; e.x = c.x; e.y = c.y; e.state = 'hang'; e.ph = rng() * 6.28; e.caged = false; e.stung = false; e.bomb = false;
       g.hang.push(e);
     });
@@ -230,22 +244,24 @@
   }
   function rng0(seed) { return LV.mulberry32(seed); }
 
+  var BODY_K = 0.92;
   function geomFor(r, cfg, topBar, bottomBar) {
-    var cw = Math.round(r * 2 * 1.14);
+    var br = r * BODY_K;                                   // physics radius of a fruit
+    var cw = Math.round(br * 2 * 1.09);                    // channel is only ~9% wider than one fruit: nothing can pass or climb over
     var cap = cfg.cap;
     var floorBase = H - bottomBar - r * 2 * 1.2;
-    var depth = cap * r * 2 * 0.98 + r * 0.5;
+    var depth = cap * br * 2 * 0.99 + r * 0.5;
     var mouthY = floorBase - depth;
     var slopeRise = clamp((mouthY - topBar) * 0.42, 130, 300);
     var g = { cw: cw, chL: W / 2 - cw / 2, chR: W / 2 + cw / 2, floorY: floorBase, floorBase: floorBase, mouthY: mouthY, slopeTopY: mouthY - slopeRise, topY: topBar + 24 };
     return g;
   }
   function genCells(g, r, rng) {
-    var s = r * 2 * 1.13, dy = s * 0.88, out = [], row = 0;
+    var s = r * 2 * 1.07, dy = s * 0.88, out = [], row = 0;
     for (var y = g.topY + r * 1.2; y < g.mouthY - r * 2.2; y += dy, row++) {
       var off = (row % 2) ? s / 2 : 0;
       for (var x = r * 1.3 + off; x < W - r * 1.3; x += s) {
-        var jx = (rng() - .5) * s * 0.18, jy = (rng() - .5) * s * 0.18;
+        var jx = (rng() - .5) * s * 0.08, jy = (rng() - .5) * s * 0.08;
         var px = x + jx, py = y + jy, gy = groundY(g, px);
         if (py < gy - r * 1.7 && py > g.topY) out.push({ x: px, y: py });
       }
@@ -260,7 +276,7 @@
     if (!G || e.state !== 'hang' || e.caged || e.stung) return false;
     if (e.bomb) { defuse(e); return true; }
     e.state = 'fall'; e.mystery = false;
-    var b = Bodies.circle(e.x, e.y, G.r * 0.9, { restitution: .12, friction: .02, frictionStatic: 0, frictionAir: .004, density: .0016, label: 'fruit' });
+    var b = Bodies.circle(e.x, e.y, G.r * BODY_K, { restitution: .12, friction: .02, frictionStatic: 0, frictionAir: .004, density: .0016, label: 'fruit' });
     Body.setVelocity(b, { x: (rnd() - .5) * 1.4, y: 0 }); Body.setAngularVelocity(b, (rnd() - .5) * .12);
     b.ent = e; e.body = b; e.idle = 0; Composite.add(G.engine.world, b);
     G.hang.splice(G.hang.indexOf(e), 1); G.dyn.push(e);
@@ -378,8 +394,8 @@
     if (G.state !== 'play') return;
     G.time += dt;
     // physics
-    var steps = Math.max(1, Math.min(6, Math.round(dt * 120)));
-    for (var s = 0; s < steps; s++) Engine.update(G.engine, 1000 / 120);
+    var steps = Math.max(2, Math.min(12, Math.round(dt * 240)));
+    for (var s = 0; s < steps; s++) Engine.update(G.engine, 1000 / 240);
     G.shake = Math.max(0, G.shake - dt * 30);
 
     // merge same-kind fruits that touch
@@ -390,7 +406,7 @@
         for (var j = i + 1; j < d.length; j++) {
           var a = d[i], b = d[j];
           if (a.kind !== b.kind) continue;
-          var dx = a.body.position.x - b.body.position.x, dy = a.body.position.y - b.body.position.y, rr = G.r * 2 * 1.04;
+          var dx = a.body.position.x - b.body.position.x, dy = a.body.position.y - b.body.position.y, rr = G.r * BODY_K * 2 * 1.06;
           if (dx * dx + dy * dy < rr * rr) { popPair(a, b); G.chain++; merged = true; break; }
         }
       }
@@ -408,7 +424,7 @@
     for (var m = 0; m < G.dyn.length; m++) {
       var ee = G.dyn[m], pp = ee.body.position;
       if (pp.x > G.chL - 6 && pp.x < G.chR + 6 && pp.y > G.mouthY - G.r * 1.5) stack++;
-      if (ee.body.speed < 0.45 && pp.x > G.chL - 6 && pp.x < G.chR + 6 && pp.y < G.mouthY - G.r * 0.35) blocked = true;
+      if (ee.body.speed < 0.45 && pp.x > G.chL - 6 && pp.x < G.chR + 6 && pp.y < G.mouthY - G.r * 0.15 && pp.y > G.mouthY - G.r * 3) blocked = true;
     }
     G.maxStack = Math.max(G.maxStack, stack);
     if (blocked) { G.fullT += dt; if (G.fullT > 1.3) { G.fullT = 0; return endLevel(false); } } else G.fullT = Math.max(0, G.fullT - dt * 2);
@@ -540,8 +556,8 @@
     ctx.fillStyle = sg; ctx.fillRect(-20, -20, W + 40, H + 40);
     if (th.night) { for (var i = 0; i < 40; i++) { var sx = (i * 197) % W, sy = (i * 83) % (H * .45); ctx.globalAlpha = .4 + .6 * Math.abs(Math.sin(cloudOff * 1.5 + i)); ctx.fillStyle = '#fff'; ctx.fillRect(sx, sy, 3, 3); } ctx.globalAlpha = 1; }
     // sun / moon
-    ctx.fillStyle = th.sun; ctx.globalAlpha = .9; ctx.beginPath(); ctx.arc(W * .8, 190, 56, 0, 7); ctx.fill();
-    ctx.globalAlpha = .25; ctx.beginPath(); ctx.arc(W * .8, 190, 86, 0, 7); ctx.fill(); ctx.globalAlpha = 1;
+    ctx.fillStyle = th.sun; ctx.globalAlpha = .9; ctx.beginPath(); ctx.arc(W * .82, 290, 52, 0, 7); ctx.fill();
+    ctx.globalAlpha = .25; ctx.beginPath(); ctx.arc(W * .82, 290, 80, 0, 7); ctx.fill(); ctx.globalAlpha = 1;
     // clouds
     ctx.fillStyle = th.night ? 'rgba(180,190,255,.18)' : 'rgba(255,255,255,.85)';
     G.clouds.forEach(function (c) { ctx.beginPath(); ctx.ellipse(c.x, c.y, 70 * c.s, 26 * c.s, 0, 0, 7); ctx.ellipse(c.x + 42 * c.s, c.y + 6 * c.s, 50 * c.s, 22 * c.s, 0, 0, 7); ctx.ellipse(c.x - 42 * c.s, c.y + 8 * c.s, 46 * c.s, 20 * c.s, 0, 0, 7); ctx.fill(); });
