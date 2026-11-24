@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#7fd0ff">
+<title>AB Z Fruit - زحلقها</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="app">
+  <canvas id="cv"></canvas>
+
+  <!-- in-game HUD -->
+  <div id="hud" class="hidden">
+    <div id="hudTop">
+      <button class="ib" id="btnPause"><img src="assets/ui/pause.png" alt=""></button>
+      <div class="pill" id="pillCoins"><img src="assets/el/coin.png" alt=""><b id="coinsTxt">0</b></div>
+      <div class="pill" id="pillLevel"><span data-t="level">المستوى</span> <b id="lvlTxt">1</b></div>
+    </div>
+    <div id="hint" class="hidden"></div>
+    <div id="hudBottom">
+      <div class="pu" id="puTrash"><img src="assets/ui/trash.png" alt=""><span class="cost"><img src="assets/el/coin.png" alt=""><i>25</i></span></div>
+      <div class="pu" id="puPlus"><img src="assets/ui/plus.png" alt=""><span class="cost"><img src="assets/el/coin.png" alt=""><i>30</i></span></div>
+      <div class="pu" id="puShuffle"><img src="assets/ui/shuffle.png" alt=""><span class="cost"><img src="assets/el/coin.png" alt=""><i>20</i></span></div>
+      <div id="counter"><img id="cntIcon" src="assets/fruits/mango.png" alt=""><b id="cntTxt">0</b></div>
+    </div>
+  </div>
+
+  <!-- splash -->
+  <div class="screen" id="sSplash">
+    <div class="logo"><div class="logoMain">AB <span>Z</span> Fruit</div><div class="logoTag">زحلقها</div></div>
+    <img class="mascot" src="assets/el/bird2.png" alt="">
+    <div class="loadbar"><i id="loadFill"></i></div>
+    <div class="loadtxt" data-t="loading">جاري التحميل...</div>
+  </div>
+
+  <!-- main menu -->
+  <div class="screen hidden" id="sMenu">
+    <div class="menuTop">
+      <div class="pill"><img src="assets/el/coin.png" alt=""><b id="menuCoins">0</b></div>
+      <div class="pill"><img src="assets/el/star.png" alt=""><b id="menuStars">0</b></div>
+    </div>
+    <div class="logo"><div class="logoMain">AB <span>Z</span> Fruit</div><div class="logoTag">زحلقها</div></div>
+    <img class="mascot" src="assets/el/bird2.png" alt="">
+    <div class="menuBtns">
+      <button class="big green" id="btnPlay"><img src="assets/ui/play.png" class="pi" alt=""><span><span data-t="play">العب</span> · <span data-t="level">المستوى</span> <b id="menuLvl">1</b></span></button>
+      <div class="row2">
+        <button class="big orange" id="btnLevels" data-t="levels">المراحل</button>
+        <button class="big purple dis" id="btnOnline"><span data-t="online">تحدي أونلاين</span><em data-t="soon">قريبًا</em></button>
+      </div>
+    </div>
+    <div class="menuIcons">
+      <button class="ib" id="btnSettings"><img src="assets/ui/settings.png" alt=""></button>
+      <button class="ib" id="btnSoundM"><img id="soundImgM" src="assets/ui/sound_on.png" alt=""></button>
+      <button class="ib" id="btnShare"><img src="assets/ui/share.png" alt=""></button>
+    </div>
+    <div class="brand">AB Software</div>
+  </div>
+
+  <!-- level select -->
+  <div class="screen hidden" id="sLevels">
+    <div class="topbar"><button class="ib" id="btnLevelsBack"><img src="assets/ui/back.png" alt=""></button><h2 data-t="levels">المراحل</h2><span class="sp"></span></div>
+    <div id="levelGrid"></div>
+  </div>
+
+  <!-- popups -->
+  <div class="popup hidden" id="pPause">
+    <div class="card">
+      <h2 data-t="paused">إيقاف مؤقت</h2>
+      <button class="big green" id="pResume" data-t="resume">كمّل</button>
+      <button class="big orange" id="pRestart" data-t="replay">إعادة</button>
+      <button class="big blue" id="pHome" data-t="home">الرئيسية</button>
+      <div class="rowIcons"><button class="ib" id="btnSoundP"><img id="soundImgP" src="assets/ui/sound_on.png" alt=""></button></div>
+    </div>
+  </div>
+
+  <div class="popup hidden" id="pWin">
+    <div class="card win">
+      <h2 data-t="win">أحسنت!</h2>
+      <div class="stars"><img id="st1" src="assets/el/star.png" alt=""><img id="st2" src="assets/el/star.png" alt=""><img id="st3" src="assets/el/star.png" alt=""></div>
+      <div class="info"><span data-t="level">المستوى</span> <b id="winLvl">1</b></div>
+      <div class="info"><img src="assets/el/coin.png" class="ci" alt=""> +<b id="winCoins">0</b></div>
+      <button class="big green" id="wNext" data-t="next">التالي</button>
+      <div class="row2">
+        <button class="big orange" id="wReplay" data-t="replay">إعادة</button>
+        <button class="big blue" id="wHome" data-t="home">الرئيسية</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="popup hidden" id="pLose">
+    <div class="card lose">
+      <h2 data-t="full">المجرى امتلأ!</h2>
+      <p data-t="fullHint">حاول تنزّل الفواكه المتشابهة ورا بعض.</p>
+      <button class="big green" id="lRetry" data-t="retry">حاول تاني</button>
+      <button class="big purple" id="lAd"><img src="assets/ui/reward_ad.png" class="pi" alt=""><span data-t="continueAd">كمّل بإعلان</span></button>
+      <button class="big blue" id="lHome" data-t="home">الرئيسية</button>
+    </div>
+  </div>
+
+  <div class="popup hidden" id="pSettings">
+    <div class="card">
+      <h2 data-t="settings">الإعدادات</h2>
+      <label class="setrow"><span data-t="sound">الصوت</span><input type="checkbox" id="setSound"></label>
+      <label class="setrow"><span data-t="vibration">الاهتزاز</span><input type="checkbox" id="setVib"></label>
+      <div class="setrow"><span data-t="language">اللغة</span><div class="seg"><button id="langAr">العربية</button><button id="langEn">English</button></div></div>
+      <div class="setrow about"><span>AB Software · v1.0.0</span></div>
+      <button class="big green" id="setClose" data-t="close">إغلاق</button>
+    </div>
+  </div>
+
+  <div class="popup hidden" id="pAd">
+    <div class="card">
+      <h2 id="adTitle" data-t="adTitle">إعلان تجريبي</h2>
+      <div class="adbar"><i id="adFill"></i></div>
+      <p data-t="adHint">هنا هيظهر إعلان حقيقي في النسخة المنشورة.</p>
+    </div>
+  </div>
+  <div id="toast" class="hidden"></div>
+</div>
+<script src="matter.min.js"></script>
+<script src="fruits.js"></script>
+<script src="levels.js"></script>
+<script src="game.js"></script>
+</body>
+</html>
