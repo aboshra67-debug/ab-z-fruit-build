@@ -153,8 +153,8 @@
     }
     if (!geom) { bestR = 11; geom = geomFor(11, cfg, topBar, bottomBar); cells = genCells(geom, 11, rng0(cfg.seed)); }
     // spread the fruits over the whole sky: widen the cell spacing until the cells just fit this level's fruits
-    var spread = 1.07, wantCells = need * 1.12 + (cfg.wood + cfg.rock) * 18 + 6;
-    for (var ff = 1.12; ff <= 2.0; ff += 0.06) {
+    var spread = 1.13, wantCells = need * 1.12 + (cfg.wood + cfg.rock) * 18 + 6;
+    for (var ff = 1.19; ff <= 2.0; ff += 0.06) {
       var cs2 = genCells(geom, bestR, rng0(cfg.seed + bestR), ff);
       if (cs2.length < wantCells) break; spread = ff; cells = cs2;
     }
@@ -205,26 +205,37 @@
       var fm = FR[fi].f || FR[fi].n; if (usedFam[fm] || chosen.length >= cfg.types) return; usedFam[fm] = 1; chosen.push(fi);
     });
     for (var p = 0; p < pairs; p++) { var tk = p < chosen.length ? p : Math.floor(rng() * chosen.length); kinds.push(chosen[tk]); }
-    var mysteryLeft = cfg.mystery;
-    var ents = [];
-    shuffle(kinds, rng).forEach(function (k, idx) {
-      var isMyst = mysteryLeft > 0 && rng() < 0.35; if (isMyst) mysteryLeft--;
-      for (var j = 0; j < 2; j++) ents.push({ kind: k, mystery: isMyst });
-    });
-    while (mysteryLeft > 0) { // make sure all mystery pairs are used
-      var a = ents[Math.floor(rng() * ents.length)]; if (!a.mystery) { a.mystery = true; var tw = ents.filter(function (e) { return e.kind === a.kind && !e.mystery && e !== a; })[0]; if (tw) tw.mystery = true; mysteryLeft--; }
+    shuffle(kinds, rng);
+    // fruits hang in solid cells. Every level is built so that it can be solved: the fruits are listed bottom-up
+    // (a fruit is only reachable after the fruits under it are gone) and the kinds are dealt along that list as nested
+    // pairs, so the 4-slot channel never has to hold more than 3 unmatched fruits when the list is played in order.
+    var sel = [];
+    for (var q = 0; q < cfg.count; q++) { var sc = pickCell(); if (!sc) break; sel.push(sc); }
+    if (sel.length % 2) sel.pop();
+    sel.forEach(function (c0) { c0.k = rng(); });
+    sel.sort(function (a, b) { return (b.row - a.row) || (a.k - b.k); });
+    var seqK = [], seqP = [], stk = [], ki = 0, DEP = 3, nT = sel.length;
+    for (var si = 0; si < nT; si++) {
+      var rem = nT - si, mustClose = stk.length > 0 && rem <= stk.length;
+      var open = stk.length === 0 ? true : (!mustClose && ki < kinds.length && stk.length < DEP && rng() < 0.55);
+      if (open && ki >= kinds.length) open = false;
+      if (open) {
+        var topK = stk.length ? stk[stk.length - 1].k : -9;
+        if (kinds[ki] === topK) { for (var zz = ki + 1; zz < kinds.length; zz++) { if (kinds[zz] !== topK) { var tmpk = kinds[zz]; kinds[zz] = kinds[ki]; kinds[ki] = tmpk; break; } } }
+        var ob = { k: kinds[ki], pid: ki }; ki++; stk.push(ob); seqK.push(ob.k); seqP.push(ob.pid);
+      } else { var cb2 = stk.pop(); seqK.push(cb2.k); seqP.push(cb2.pid); }
     }
-    shuffle(ents, rng);
-    var id = 1;
-    ents.forEach(function (e) {
-      var c = pickCell();
-      if (!c) return;
-      e.id = id++; e.x = c.x; e.y = c.y; e.state = 'hang'; e.ph = rng() * 6.28; e.caged = false; e.stung = false; e.bomb = false;
-      g.hang.push(e);
+    var mystSet = {}, mystLeft = Math.min(cfg.mystery, Math.floor(nT / 2));
+    while (mystLeft > 0) { var mp = Math.floor(rng() * ki); if (!mystSet[mp]) { mystSet[mp] = 1; mystLeft--; } }
+    var id = 1; g.order = [];
+    sel.forEach(function (c, ix) {
+      var e = { kind: seqK[ix], mystery: !!mystSet[seqP[ix]], id: id++, x: c.x, y: c.y, state: 'hang', ph: rng() * 6.28, caged: false, stung: false, bomb: false, ord: ix };
+      g.hang.push(e); g.order.push(e);
     });
+    var pairs2 = nT / 2; pairs = pairs2;
     // cages (each cage locks one fruit; opens after 2 pops)
     var cagedN = 0, hpMax = Math.max(2, Math.floor(pairs * 0.6));
-    shuffle(g.hang.slice(), rng).forEach(function (e) {
+    shuffle(g.hang.filter(function (e) { return e.ord >= Math.floor(nT * 0.7); }), rng).forEach(function (e) {
       if (cagedN < cfg.cage) { e.caged = true; e.lock = (cagedN % 2 === 0) ? 'nest' : 'bubble'; e.cageHp = Math.min(hpMax, clamp(2 + Math.floor((cfg.n - 10) / 20) + Math.floor(rng() * 3), 2, 9)); cagedN++; }
     });
     // bombs
@@ -233,9 +244,22 @@
       var be = { id: id++, kind: -1, x: cb.x, y: cb.y, state: 'hang', bomb: true, fuse: 16 + rng() * 10 - Math.min(6, cfg.n / 40), ph: rng() * 6.28 };
       g.hang.push(be);
     }
-    g.total = cfg.count; g.remaining = cfg.count;
+    g.hang.forEach(function (he) { hbOn(g, he); });
+    g.total = nT; g.remaining = nT;
     g.birdAt = 0.28 + rng() * 0.2; g.birdN = cfg.bird; g.beeT = 5 + rng() * 6;
     return g;
+  }
+  /* hanging fruits are solid: a fruit that falls onto them stops until the fruit below is released */
+  function hbOn(g, e) {
+    if (e.hb) return;
+    e.hb = Bodies.circle(e.x, e.y, g.r * 1.0, { isStatic: true, friction: .02, frictionStatic: 0, restitution: .05, label: 'hang' });
+    Composite.add(g.engine.world, e.hb);
+  }
+  function hbOff(e) { if (e.hb) { Composite.remove(G.engine.world, e.hb); e.hb = null; } }
+  function nearHang(p) {
+    var lim = G.r * 2.7;
+    for (var i = 0; i < G.hang.length; i++) { var h = G.hang[i]; if (h.hb) { var dx = h.x - p.x, dy = h.y - p.y; if (dx * dx + dy * dy < lim * lim) return true; } }
+    return false;
   }
   function rng0(seed) { return LV.mulberry32(seed); }
 
@@ -252,13 +276,13 @@
     return g;
   }
   function genCells(g, r, rng, f) {
-    var s = r * 2 * (f || 1.07), dy = s * 0.88, out = [], row = 0;
+    var s = r * 2 * (f || 1.13), dy = s * 0.88, out = [], row = 0;
     for (var y = g.topY + r * 1.2; y < g.mouthY - r * 2.2; y += dy, row++) {
       var off = (row % 2) ? s / 2 : 0;
       for (var x = r * 1.3 + off; x < W - r * 1.3; x += s) {
-        var jx = (rng() - .5) * s * (f > 1.2 ? 0.3 : 0.08), jy = (rng() - .5) * s * (f > 1.2 ? 0.3 : 0.08);
+        var jx = (rng() - .5) * s * (f > 1.2 ? 0.3 : 0.04), jy = (rng() - .5) * s * (f > 1.2 ? 0.3 : 0.04);
         var px = x + jx, py = y + jy, gy = groundY(g, px);
-        if (py < gy - r * 1.7 && py > g.topY) out.push({ x: px, y: py });
+        if (py < gy - r * 3.6 && py > g.topY) out.push({ x: px, y: py, row: row });
       }
     }
     return out;
@@ -270,6 +294,7 @@
   function releaseFruit(e) {
     if (!G || e.state !== 'hang' || e.caged || e.stung) return false;
     if (e.bomb) { defuse(e); return true; }
+    hbOff(e);
     e.state = 'fall'; e.mystery = false;
     for (var tr = 0; tr < 8; tr++) {   // never spawn inside another falling fruit
       var clash = G.dyn.some(function (o) { var q = o.body.position, dx = q.x - e.x, dy = q.y - e.y; return dx * dx + dy * dy < Math.pow(G.r * BODY_K * 2.05, 2); });
@@ -294,12 +319,12 @@
     return releaseFruit(best);
   }
   function defuse(e) {
-    G.hang.splice(G.hang.indexOf(e), 1);
+    hbOff(e); G.hang.splice(G.hang.indexOf(e), 1);
     addFx('sparkle', e.x, e.y, G.r * 4, .5); addFx('smoke', e.x, e.y, G.r * 3.4, .6);
     SFX.power(); save.coins += 2; persist(); updateCoins();
   }
   function explodeBomb(e) {
-    G.hang.splice(G.hang.indexOf(e), 1);
+    hbOff(e); G.hang.splice(G.hang.indexOf(e), 1);
     addFx('pop', e.x, e.y, G.r * 7, .6); addFx('smoke', e.x, e.y, G.r * 5, .8);
     SFX.bomb(); vib(60); G.shake = 14;
     var near = G.hang.filter(function (f) { return !f.bomb && !f.caged && !f.stung; })
@@ -326,7 +351,7 @@
   function removeFruit(e) {
     var x, y;
     if (e.state === 'fall') { x = e.body.position.x; y = e.body.position.y; Composite.remove(G.engine.world, e.body); G.dyn.splice(G.dyn.indexOf(e), 1); }
-    else { x = e.x; y = e.y; G.hang.splice(G.hang.indexOf(e), 1); }
+    else { x = e.x; y = e.y; hbOff(e); G.hang.splice(G.hang.indexOf(e), 1); }
     addFx('splash', x, y, G.r * 3, .5); addFx('sparkle', x, y, G.r * 2.4, .4);
   }
 
@@ -421,9 +446,9 @@
     for (var k = 0; k < G.dyn.length; k++) {
       var e = G.dyn[k], p = e.body.position, v = e.body.speed;
       var inCh = p.x > G.chL - 6 && p.x < G.chR + 6 && p.y > G.mouthY - G.r * 0.5;
-      if (!inCh && v < 0.3) { e.idle = (e.idle || 0) + dt; if (e.idle > 1.2) { e.idle = 0; Body.setVelocity(e.body, { x: (W / 2 - p.x) * 0.02 + (rnd() - .5) * 2, y: -3 }); } }
+      if (!inCh && v < 0.3 && !nearHang(p)) { e.idle = (e.idle || 0) + dt; if (e.idle > 1.2) { e.idle = 0; Body.setVelocity(e.body, { x: (W / 2 - p.x) * 0.02 + (rnd() - .5) * 2, y: -3 }); } }
       else e.idle = 0;
-      if (p.y > H + 200 || p.x < -200 || p.x > W + 200) { (G.lostLog = G.lostLog || []).push([e.kind, Math.round(p.x), Math.round(p.y)]); Composite.remove(G.engine.world, e.body); e.state = 'hang'; e.x = clamp(W * .3 + rnd() * W * .4, 60, W - 60); e.y = G.topY + G.r * 2; e.ph = 0; delete e.body; G.dyn.splice(k, 1); k--; G.hang.push(e); }
+      if (p.y > H + 200 || p.x < -200 || p.x > W + 200) { (G.lostLog = G.lostLog || []).push([e.kind, Math.round(p.x), Math.round(p.y)]); Composite.remove(G.engine.world, e.body); e.state = 'hang'; e.x = clamp(W * .3 + rnd() * W * .4, 60, W - 60); e.y = G.topY + G.r * 2; e.ph = 0; delete e.body; G.dyn.splice(k, 1); k--; G.hang.push(e); hbOn(G, e); }
     }
     // overflow check
     var blocked = false, stack = 0;
@@ -438,7 +463,7 @@
     // deadlock: nothing left to drop and the channel cannot clear itself
     var freeLeft = G.hang.some(function (e) { return !e.bomb && !e.caged && !e.stung; });
     var settled = G.dyn.length > 0 && G.dyn.every(function (e) { return e.body.speed < 0.3; });
-    if (!freeLeft && settled && !G.bird && !G.bees.length && !G.hang.some(function (e) { return e.caged; })) { G.deadT = (G.deadT || 0) + dt; if (G.deadT > 2.5) { G.deadT = 0; G.deadlock = true; return endLevel(false); } } else G.deadT = 0;
+    if (!freeLeft && settled && !G.bird && !G.bees.length && !G.hang.some(function (e) { return e.caged || e.bomb; })) { G.deadT = (G.deadT || 0) + dt; if (G.deadT > 2.5) { G.deadT = 0; G.deadlock = true; return endLevel(false); } } else G.deadT = 0;
     // cages never deadlock: if only locked fruits remain, open them
     if (G.hang.length && G.hang.every(function (e) { return e.caged || e.bomb; }) && G.hang.some(function (e) { return e.caged; })) { G.hang.forEach(function (e) { if (e.caged) { e.cageHp = 0; e.caged = false; addFx('shards', e.x, e.y, G.r * 3.2, .5); } }); }
     // bombs
@@ -495,7 +520,7 @@
       if (b.target.state !== 'hang') { b.state = 'leave'; return; }
       var dx = b.target.x - b.x, dy = b.target.y - b.y, d = Math.sqrt(dx * dx + dy * dy) || 1;
       b.x += dx / d * 330 * dt; b.y += dy / d * 330 * dt;
-      if (d < G.r * 1.2) { b.state = 'carry'; b.t = 0; G.hang.splice(G.hang.indexOf(b.target), 1); b.carry = b.target; b.carry.state = 'carried'; SFX.bird(); }
+      if (d < G.r * 1.2) { b.state = 'carry'; b.t = 0; hbOff(b.target); G.hang.splice(G.hang.indexOf(b.target), 1); b.carry = b.target; b.carry.state = 'carried'; SFX.bird(); }
     } else if (b.state === 'carry') {
       var tx = W / 2, ty = G.mouthY - G.r * 6; var ddx = tx - b.x, ddy = ty - b.y, dd = Math.sqrt(ddx * ddx + ddy * ddy) || 1;
       b.x += ddx / dd * 300 * dt; b.y += ddy / dd * 300 * dt;
