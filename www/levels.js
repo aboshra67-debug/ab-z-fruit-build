@@ -16,17 +16,21 @@
 
   function genLevel(n) {
     n = Math.max(1, Math.min(MAX_LEVEL, n | 0));
-    var count = evenInt(20 + 4.4 * (n - 1));          // ~20 at lvl 1, ~42 at lvl 6, ~100 at lvl 19, ~200 at lvl 42, 300 from lvl 64
-    count = Math.min(count, 300);
+    // fruit count curve: ~18 at lvl 1, 45 at lvl 10, 100 at lvl 25, 140 at lvl 50, 170 at lvl 80, 200 max (fruit shrinks as the count grows)
+    var CURVE = [[1, 18], [5, 30], [10, 45], [25, 100], [50, 140], [80, 170], [120, 200]], count = 200;
+    for (var ci = 1; ci < CURVE.length; ci++) {
+      if (n <= CURVE[ci][0]) { var a0 = CURVE[ci - 1], a1 = CURVE[ci]; count = a0[1] + (a1[1] - a0[1]) * (n - a0[0]) / (a1[0] - a0[0]); break; }
+    }
+    count = Math.min(evenInt(count), 200);
     var pairs = count / 2;
-    var types = Math.min(5 + Math.floor((n - 1) / 3), 22);
+    var types = Math.min(6 + Math.floor((n - 1) * 0.9), 24);
     types = Math.min(types, pairs);
     var cap = 4;                                       // the channel always holds exactly 4 fruits
     var boss = (n >= 20 && n % 10 === 0);
     var cfg = {
       n: n, count: count, types: types, cap: cap, boss: boss,
       world: Math.floor((n - 1) / 20) % 5,
-      rMax: 31,
+      rMax: count <= 30 ? 36 : 33,
       wood: n >= 6 ? Math.min(5, 1 + Math.floor((n - 6) / 20)) : 0,
       rock: n >= 11 ? Math.min(5, 1 + Math.floor((n - 11) / 24)) : 0,
       mystery: n >= 15 ? Math.min(Math.floor(pairs * 0.15), 1 + Math.floor((n - 15) / 10)) : 0,

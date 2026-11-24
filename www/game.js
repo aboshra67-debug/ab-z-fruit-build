@@ -149,11 +149,11 @@
       var gm = geomFor(r, cfg, topBar, bottomBar);
       var cs = genCells(gm, r, rng0(cfg.seed + r));
       var obstSpace = (cfg.wood + cfg.rock) * 18;
-      if (cs.length >= need * 1.2 + obstSpace + 4) { bestR = r; cells = cs; geom = gm; break; }
+      if (cs.length >= need * 1.03 + obstSpace + 2) { bestR = r; cells = cs; geom = gm; break; }
     }
     if (!geom) { bestR = 11; geom = geomFor(11, cfg, topBar, bottomBar); cells = genCells(geom, 11, rng0(cfg.seed)); }
     // spread the fruits over the whole sky: widen the cell spacing until the cells just fit this level's fruits
-    var spread = 1.13, wantCells = need * 1.12 + (cfg.wood + cfg.rock) * 18 + 6;
+    var spread = 1.13, wantCells = need * 1.03 + (cfg.wood + cfg.rock) * 18 + 6;
     for (var ff = 1.19; ff <= 2.0; ff += 0.06) {
       var cs2 = genCells(geom, bestR, rng0(cfg.seed + bestR), ff);
       if (cs2.length < wantCells) break; spread = ff; cells = cs2;
@@ -213,7 +213,7 @@
     for (var q = 0; q < cfg.count; q++) { var sc = pickCell(); if (!sc) break; sel.push(sc); }
     if (sel.length % 2) sel.pop();
     sel.forEach(function (c0) { c0.k = rng(); });
-    sel.sort(function (a, b) { return (b.row - a.row) || (a.k - b.k); });
+    sel.sort(function (a, b) { return b.y - a.y; });    // lowest fruit first: a fruit is only reachable once the fruits under it are gone
     var seqK = [], seqP = [], stk = [], ki = 0, DEP = 3, nT = sel.length;
     for (var si = 0; si < nT; si++) {
       var rem = nT - si, mustClose = stk.length > 0 && rem <= stk.length;
@@ -271,19 +271,32 @@
     var floorBase = H - bottomBar - r * 2 * 1.2;
     var depth = cap * br * 2 * 0.99 + r * 0.5;
     var mouthY = floorBase - depth;
-    var slopeRise = clamp((mouthY - topBar) * 0.42, 130, 300);
+    var slopeRise = clamp((mouthY - topBar) * 0.2, 150, 200);   // gentle ~30 degree funnel like the original
     var g = { cw: cw, chL: W / 2 - cw / 2, chR: W / 2 + cw / 2, floorY: floorBase, floorBase: floorBase, mouthY: mouthY, slopeTopY: mouthY - slopeRise, topY: topBar + 24 };
     return g;
   }
-  function genCells(g, r, rng, f) {
-    var s = r * 2 * (f || 1.13), dy = s * 0.88, out = [], row = 0;
-    for (var y = g.topY + r * 1.2; y < g.mouthY - r * 2.2; y += dy, row++) {
-      var off = (row % 2) ? s / 2 : 0;
-      for (var x = r * 1.3 + off; x < W - r * 1.3; x += s) {
-        var jx = (rng() - .5) * s * (f > 1.2 ? 0.3 : 0.04), jy = (rng() - .5) * s * (f > 1.2 ? 0.3 : 0.04);
-        var px = x + jx, py = y + jy, gy = groundY(g, px);
-        if (py < gy - r * 3.6 && py > g.topY) out.push({ x: px, y: py, row: row });
+  function genCells(g, r, rng, f) {          // blue-noise (Poisson-disc) scatter over the sky, like the original
+    var dmin = r * 2 * (f || 1.13), cs = dmin / Math.SQRT2;
+    var x0 = r * 1.15, x1 = W - r * 1.15, y0 = g.topY + r * 1.2, y1 = g.mouthY - r * 2.2;
+    var gw = Math.ceil((x1 - x0) / cs) + 1, gh = Math.ceil((y1 - y0) / cs) + 1, grid = new Array(gw * gh), out = [], act = [];
+    function ok(x, y) {
+      if (x < x0 || x > x1 || y < y0 || y > y1) return false;
+      if (!(y < groundY(g, x) - r * 3.6 && y > g.topY)) return false;
+      var cx = Math.floor((x - x0) / cs), cy = Math.floor((y - y0) / cs);
+      for (var a = Math.max(0, cx - 2); a <= Math.min(gw - 1, cx + 2); a++) for (var b = Math.max(0, cy - 2); b <= Math.min(gh - 1, cy + 2); b++) {
+        var q = grid[b * gw + a]; if (q) { var dx = q.x - x, dy = q.y - y; if (dx * dx + dy * dy < dmin * dmin) return false; }
       }
+      return true;
+    }
+    function add(x, y) { var c = { x: x, y: y }; out.push(c); act.push(c); grid[Math.floor((y - y0) / cs) * gw + Math.floor((x - x0) / cs)] = c; }
+    for (var t = 0; t < 400 && !out.length; t++) { var sx = x0 + rng() * (x1 - x0), sy = y0 + rng() * (y1 - y0); if (ok(sx, sy)) add(sx, sy); }
+    while (act.length) {
+      var ai = Math.floor(rng() * act.length), c0 = act[ai], found = false;
+      for (var k = 0; k < 24; k++) {
+        var ang = rng() * 6.2832, rad = dmin * (1 + rng()), px = c0.x + Math.cos(ang) * rad, py = c0.y + Math.sin(ang) * rad;
+        if (ok(px, py)) { add(px, py); found = true; break; }
+      }
+      if (!found) act.splice(ai, 1);
     }
     return out;
   }
@@ -587,8 +600,8 @@
     ctx.fillStyle = sg; ctx.fillRect(-20, -20, W + 40, H + 40);
     if (th.night) { for (var i = 0; i < 40; i++) { var sx = (i * 197) % W, sy = (i * 83) % (H * .45); ctx.globalAlpha = .4 + .6 * Math.abs(Math.sin(cloudOff * 1.5 + i)); ctx.fillStyle = '#fff'; ctx.fillRect(sx, sy, 3, 3); } ctx.globalAlpha = 1; }
     // sun / moon
-    ctx.fillStyle = th.sun; ctx.globalAlpha = .9; ctx.beginPath(); ctx.arc(W * .82, 290, 52, 0, 7); ctx.fill();
-    ctx.globalAlpha = .25; ctx.beginPath(); ctx.arc(W * .82, 290, 80, 0, 7); ctx.fill(); ctx.globalAlpha = 1;
+    ctx.fillStyle = th.sun; ctx.globalAlpha = .9; ctx.beginPath(); ctx.arc(W * .16, H * .45, 54, 0, 7); ctx.fill();
+    ctx.globalAlpha = .25; ctx.beginPath(); ctx.arc(W * .16, H * .45, 84, 0, 7); ctx.fill(); ctx.globalAlpha = 1;
     // clouds
     ctx.fillStyle = th.night ? 'rgba(180,190,255,.18)' : 'rgba(255,255,255,.85)';
     G.clouds.forEach(function (c) { ctx.beginPath(); ctx.ellipse(c.x, c.y, 70 * c.s, 26 * c.s, 0, 0, 7); ctx.ellipse(c.x + 42 * c.s, c.y + 6 * c.s, 50 * c.s, 22 * c.s, 0, 0, 7); ctx.ellipse(c.x - 42 * c.s, c.y + 8 * c.s, 46 * c.s, 20 * c.s, 0, 0, 7); ctx.fill(); });
@@ -663,8 +676,8 @@
     }
   }
   function drawLogs(g) {
-    var rr = 40, bottom = g.slopeTopY - 30;
-    for (var y = 150; y < bottom; y += 100) {
+    var rr = 30, bottom = g.slopeTopY - 30;
+    for (var y = 150; y < bottom; y += 90) {
       for (var side = 0; side < 2; side++) {
         var x = side ? W : 0;
         var gr = ctx.createRadialGradient(x, y, 4, x, y, rr); gr.addColorStop(0, '#f1c27e'); gr.addColorStop(1, '#c98a4a');

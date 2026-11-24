@@ -17,12 +17,23 @@ android {
     }
 
     signingConfigs {
-        // fixed test key (same on every build) so updates install over the old version without uninstalling
+        // private test key: stored encrypted in the repo (app/signing.enc); CI decrypts it with the KS_PASS secret.
+        // The same key on every build lets each APK install over the previous one.
+        // Without the secret it falls back to the older shared test key (app/test-debug.keystore).
         debug {
-            storeFile file('test-debug.keystore')
-            storePassword 'android'
-            keyAlias 'androiddebugkey'
-            keyPassword 'android'
+            def ks = file('ab-test.keystore')
+            def pw = System.getenv('KS_PASS')
+            if (ks.exists() && pw) {
+                storeFile ks
+                storePassword pw
+                keyAlias 'abzfruit'
+                keyPassword pw
+            } else {
+                storeFile file('test-debug.keystore')
+                storePassword 'android'
+                keyAlias 'androiddebugkey'
+                keyPassword 'android'
+            }
         }
     }
 

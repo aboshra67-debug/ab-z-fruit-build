@@ -17,7 +17,18 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.7'
+      - name: Prepare private signing key
+        env:
+          KS_PASS: ${{ secrets.KS_PASS }}
+        run: |
+          if [ -z "$KS_PASS" ]; then
+            echo "::warning::Secret KS_PASS not set: building with the older shared test key."
+            exit 0
+          fi
+          openssl enc -d -aes-256-cbc -pbkdf2 -iter 200000 -in app/signing.enc -out app/ab-test.keystore -pass env:KS_PASS
       - name: Build debug (installable) and release (unsigned)
+        env:
+          KS_PASS: ${{ secrets.KS_PASS }}
         run: gradle --no-daemon assembleDebug assembleRelease
       - name: Collect APKs
         run: |
@@ -34,5 +45,5 @@ jobs:
         run: |
           gh release create "test-build-${{ github.run_number }}" out/ABZFruit-debug.apk \
             --title "AB Z Fruit test build ${{ github.run_number }}" \
-            --notes "Installable debug APK (signed with the debug key). For testing only." \
+            --notes "Installable test APK signed with the private AB test key (installs over the previous build). For testing only." \
             --prerelease

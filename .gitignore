@@ -3,3 +3,5 @@ build/
 local.properties
 *.iml
 node_modules/
+app/ab-test.keystore
+*.jks
