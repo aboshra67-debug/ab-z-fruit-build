@@ -116,7 +116,7 @@
   var cloudOff = 0;
 
   function newEngine() {
-    var e = Engine.create({ positionIterations: 10, velocityIterations: 8 });
+    var e = Engine.create({ positionIterations: 14, velocityIterations: 10 });
     e.gravity.y = 1; e.gravity.scale = 0.0022;
     return e;
   }
@@ -211,8 +211,11 @@
     shuffle(ents, rng);
     var id = 1;
     // hanging fruits are packed in a few dense clusters (like the original game)
-    var nCl = clamp(2 + Math.floor(ents.length / 28), 2, 7), centers = [];
-    for (var cl = 0; cl < nCl; cl++) { var cc = cells[Math.floor(rng() * cells.length)]; if (cc) centers.push(cc); }
+    var nCl = ents.length < 120 ? 1 : 2, centers = [];   // one dense cloud in the middle of the sky (as in the original)
+    var tx0 = W / 2 + (rng() - .5) * W * .16, ty0 = g.topY + (g.mouthY - g.topY) * .30, bd0 = 1e9, bc0 = null;
+    cells.forEach(function (c0, i0) { if (usedCells[i0]) return; var d0 = Math.abs(c0.x - tx0) + Math.abs(c0.y - ty0); if (d0 < bd0) { bd0 = d0; bc0 = c0; } });
+    if (bc0) centers.push(bc0);
+    for (var cl = 1; cl < nCl; cl++) { var cc = cells[Math.floor(rng() * cells.length)]; if (cc) centers.push(cc); }
     var order = [];
     for (var ci = 0; ci < cells.length; ci++) {
       if (usedCells[ci]) continue; var md = 1e9;
@@ -244,10 +247,10 @@
   }
   function rng0(seed) { return LV.mulberry32(seed); }
 
-  var BODY_K = 0.92;
+  var BODY_K = 1.04, DRAW_K = 2.2;        // physics radius ~= drawn radius, so fruits never look like they overlap
   function geomFor(r, cfg, topBar, bottomBar) {
     var br = r * BODY_K;                                   // physics radius of a fruit
-    var cw = Math.round(br * 2 * 1.09);                    // channel is only ~9% wider than one fruit: nothing can pass or climb over
+    var cw = Math.round(r * DRAW_K * 1.2);                 // like the original: channel is ~1.2x the fruit diameter
     var cap = cfg.cap;
     var floorBase = H - bottomBar - r * 2 * 1.2;
     var depth = cap * br * 2 * 0.99 + r * 0.5;
@@ -276,6 +279,10 @@
     if (!G || e.state !== 'hang' || e.caged || e.stung) return false;
     if (e.bomb) { defuse(e); return true; }
     e.state = 'fall'; e.mystery = false;
+    for (var tr = 0; tr < 8; tr++) {   // never spawn inside another falling fruit
+      var clash = G.dyn.some(function (o) { var q = o.body.position, dx = q.x - e.x, dy = q.y - e.y; return dx * dx + dy * dy < Math.pow(G.r * BODY_K * 2.05, 2); });
+      if (!clash) break; e.y -= G.r * BODY_K * 0.7;
+    }
     var b = Bodies.circle(e.x, e.y, G.r * BODY_K, { restitution: .12, friction: .02, frictionStatic: 0, frictionAir: .004, density: .0016, label: 'fruit' });
     Body.setVelocity(b, { x: (rnd() - .5) * 1.4, y: 0 }); Body.setAngularVelocity(b, (rnd() - .5) * .12);
     b.ent = e; e.body = b; e.idle = 0; Composite.add(G.engine.world, b);
@@ -576,13 +583,13 @@
       var sc = 1 + (e.wob ? Math.sin(e.wob * 30) * .08 : 0);
       var im = e.mystery ? IMG.el.mystery : kindImg(e);
       if (e.caged && e.lock === 'nest') drawNestBack(x, y);
-      drawSpr(im, x, y, r * 2.24 * sc, 0, e.stung ? .55 : 1);
+      drawSpr(im, x, y, r * DRAW_K * sc, 0, e.stung ? .55 : 1);
       if (e.caged) drawLockFront(e, x, y);
     });
     // dynamic fruits
-    G.dyn.forEach(function (e) { var p = e.body.position; drawSpr(kindImg(e), p.x, p.y, r * 2.24, e.body.angle, 1); });
+    G.dyn.forEach(function (e) { var p = e.body.position; drawSpr(kindImg(e), p.x, p.y, r * DRAW_K, e.body.angle, 1); });
     // carried fruit
-    if (G.bird && G.bird.carry) drawSpr(kindImg(G.bird.carry), G.bird.x, G.bird.y + r * 1.4, r * 2.24, 0, 1);
+    if (G.bird && G.bird.carry) drawSpr(kindImg(G.bird.carry), G.bird.x, G.bird.y + r * 1.4, r * DRAW_K, 0, 1);
     // bees
     G.bees.forEach(function (b) { drawSpr(IMG.el.bee, b.x, b.y, r * 2.2 + 10, Math.sin(G.time * 20) * .1, 1); });
     // bird

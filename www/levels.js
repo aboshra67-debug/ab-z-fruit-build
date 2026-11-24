@@ -26,7 +26,7 @@
     var cfg = {
       n: n, count: count, types: types, cap: cap, boss: boss,
       world: Math.floor((n - 1) / 20) % 5,
-      rMax: 28,
+      rMax: 31,
       wood: n >= 6 ? Math.min(5, 1 + Math.floor((n - 6) / 20)) : 0,
       rock: n >= 11 ? Math.min(5, 1 + Math.floor((n - 11) / 24)) : 0,
       mystery: n >= 15 ? Math.min(Math.floor(pairs * 0.15), 1 + Math.floor((n - 15) / 10)) : 0,

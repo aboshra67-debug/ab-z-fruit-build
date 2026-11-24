@@ -4,7 +4,7 @@ url='file:///home/claude/zfruit/www/index.html'
 JS="""
 (n)=>{
   ZF.start(n); const G=ZF.G; let minRatio=9, worst=null, steps=0, cross=0;
-  const br=(G.br||G.r*0.9);
+  const br=(G.r*1.04);
   while(G.state==='play' && steps<600){
     steps++;
     const f=G.hang.filter(e=>!e.bomb&&!e.caged&&!e.stung);
