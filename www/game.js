@@ -152,6 +152,12 @@
       if (cs.length >= need * 1.2 + obstSpace + 4) { bestR = r; cells = cs; geom = gm; break; }
     }
     if (!geom) { bestR = 11; geom = geomFor(11, cfg, topBar, bottomBar); cells = genCells(geom, 11, rng0(cfg.seed)); }
+    // spread the fruits over the whole sky: widen the cell spacing until the cells just fit this level's fruits
+    var spread = 1.07, wantCells = need * 1.12 + (cfg.wood + cfg.rock) * 18 + 6;
+    for (var ff = 1.12; ff <= 2.0; ff += 0.06) {
+      var cs2 = genCells(geom, bestR, rng0(cfg.seed + bestR), ff);
+      if (cs2.length < wantCells) break; spread = ff; cells = cs2;
+    }
     g.r = bestR; for (var kk in geom) g[kk] = geom[kk];
 
     // static terrain
@@ -210,22 +216,8 @@
     }
     shuffle(ents, rng);
     var id = 1;
-    // hanging fruits are packed in a few dense clusters (like the original game)
-    var nCl = ents.length < 120 ? 1 : 2, centers = [];   // one dense cloud in the middle of the sky (as in the original)
-    var tx0 = W / 2 + (rng() - .5) * W * .16, ty0 = g.topY + (g.mouthY - g.topY) * .30, bd0 = 1e9, bc0 = null;
-    cells.forEach(function (c0, i0) { if (usedCells[i0]) return; var d0 = Math.abs(c0.x - tx0) + Math.abs(c0.y - ty0); if (d0 < bd0) { bd0 = d0; bc0 = c0; } });
-    if (bc0) centers.push(bc0);
-    for (var cl = 1; cl < nCl; cl++) { var cc = cells[Math.floor(rng() * cells.length)]; if (cc) centers.push(cc); }
-    var order = [];
-    for (var ci = 0; ci < cells.length; ci++) {
-      if (usedCells[ci]) continue; var md = 1e9;
-      for (var cj = 0; cj < centers.length; cj++) { var ddx = cells[ci].x - centers[cj].x, ddy = cells[ci].y - centers[cj].y; md = Math.min(md, Math.sqrt(ddx * ddx + ddy * ddy)); }
-      order.push({ i: ci, d: md * (0.85 + rng() * 0.3) });
-    }
-    order.sort(function (a, b) { return a.d - b.d; });
-    var oi = 0;
     ents.forEach(function (e) {
-      var c = null; while (oi < order.length && !c) { var oc = order[oi++]; if (!usedCells[oc.i]) { usedCells[oc.i] = 1; c = cells[oc.i]; } }
+      var c = pickCell();
       if (!c) return;
       e.id = id++; e.x = c.x; e.y = c.y; e.state = 'hang'; e.ph = rng() * 6.28; e.caged = false; e.stung = false; e.bomb = false;
       g.hang.push(e);
@@ -247,7 +239,7 @@
   }
   function rng0(seed) { return LV.mulberry32(seed); }
 
-  var BODY_K = 1.04, DRAW_K = 2.2;        // physics radius ~= drawn radius, so fruits never look like they overlap
+  var BODY_K = 1.1, DRAW_K = 2.2;        // physics radius ~= drawn radius, so fruits never look like they overlap
   function geomFor(r, cfg, topBar, bottomBar) {
     var br = r * BODY_K;                                   // physics radius of a fruit
     var cw = Math.round(r * DRAW_K * 1.2);                 // like the original: channel is ~1.2x the fruit diameter
@@ -259,12 +251,12 @@
     var g = { cw: cw, chL: W / 2 - cw / 2, chR: W / 2 + cw / 2, floorY: floorBase, floorBase: floorBase, mouthY: mouthY, slopeTopY: mouthY - slopeRise, topY: topBar + 24 };
     return g;
   }
-  function genCells(g, r, rng) {
-    var s = r * 2 * 1.07, dy = s * 0.88, out = [], row = 0;
+  function genCells(g, r, rng, f) {
+    var s = r * 2 * (f || 1.07), dy = s * 0.88, out = [], row = 0;
     for (var y = g.topY + r * 1.2; y < g.mouthY - r * 2.2; y += dy, row++) {
       var off = (row % 2) ? s / 2 : 0;
       for (var x = r * 1.3 + off; x < W - r * 1.3; x += s) {
-        var jx = (rng() - .5) * s * 0.08, jy = (rng() - .5) * s * 0.08;
+        var jx = (rng() - .5) * s * (f > 1.2 ? 0.3 : 0.08), jy = (rng() - .5) * s * (f > 1.2 ? 0.3 : 0.08);
         var px = x + jx, py = y + jy, gy = groundY(g, px);
         if (py < gy - r * 1.7 && py > g.topY) out.push({ x: px, y: py });
       }
@@ -416,6 +408,13 @@
           var dx = a.body.position.x - b.body.position.x, dy = a.body.position.y - b.body.position.y, rr = G.r * BODY_K * 2 * 1.06;
           if (dx * dx + dy * dy < rr * rr) { popPair(a, b); G.chain++; merged = true; break; }
         }
+      }
+    }
+    // safety net: never let two fruits visibly overlap
+    for (var pi = 0; pi < G.dyn.length; pi++) {
+      for (var pj = pi + 1; pj < G.dyn.length; pj++) {
+        var qa = G.dyn[pi].body, qb = G.dyn[pj].body, sdx = qb.position.x - qa.position.x, sdy = qb.position.y - qa.position.y, sd = Math.sqrt(sdx * sdx + sdy * sdy), mn = G.r * BODY_K * 2 * 0.94;
+        if (sd < mn && sd > 0.01) { var push = (mn - sd) / 2, ux = sdx / sd, uy = sdy / sd; Body.setPosition(qa, { x: qa.position.x - ux * push, y: qa.position.y - uy * push }); Body.setPosition(qb, { x: qb.position.x + ux * push, y: qb.position.y + uy * push }); }
       }
     }
     // stuck fruits (not in channel and not moving) get a nudge toward the channel
