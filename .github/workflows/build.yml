@@ -3,6 +3,8 @@ on:
   push:
     branches: [ main, master ]
   workflow_dispatch:
+permissions:
+  contents: write
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -26,3 +28,11 @@ jobs:
         with:
           name: ABZFruit-APK
           path: out/*.apk
+      - name: Publish test APK as a GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "test-build-${{ github.run_number }}" out/ABZFruit-debug.apk \
+            --title "AB Z Fruit test build ${{ github.run_number }}" \
+            --notes "Installable debug APK (signed with the debug key). For testing only." \
+            --prerelease
