@@ -1,0 +1,23 @@
+name: Verify VC137 signing certificate
+on:
+  push:
+    branches: [diagnostic/vc137-signature]
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check certificate without exposing key
+        env:
+          KS_PASS: ${{ secrets.KS_PASS }}
+        run: |
+          set -eu
+          test -n "$KS_PASS" || { echo 'KS_PASS unavailable'; exit 1; }
+          umask 077
+          trap 'rm -f "$RUNNER_TEMP/ab-test.keystore"' EXIT
+          openssl enc -d -aes-256-cbc -pbkdf2 -iter 200000 -in app/signing.enc -out "$RUNNER_TEMP/ab-test.keystore" -pass env:KS_PASS
+          fingerprint=$(keytool -exportcert -keystore "$RUNNER_TEMP/ab-test.keystore" -alias abzfruit -storepass:env KS_PASS | sha256sum | cut -d ' ' -f1)
+          echo "Certificate SHA256: $fingerprint"
+          test "$fingerprint" = '8a9d7359216034cd71d2060fbbad454ace828124c0d3691636f3d53df914a28a'
