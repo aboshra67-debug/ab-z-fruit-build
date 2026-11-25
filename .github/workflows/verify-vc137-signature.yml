@@ -21,3 +21,5 @@ jobs:
           fingerprint=$(keytool -exportcert -keystore "$RUNNER_TEMP/ab-test.keystore" -alias abzfruit -storepass:env KS_PASS | sha256sum | cut -d ' ' -f1)
           echo "Certificate SHA256: $fingerprint"
           test "$fingerprint" = '8a9d7359216034cd71d2060fbbad454ace828124c0d3691636f3d53df914a28a'
+
+# Retry after billing was resolved on 2026-11-25.
