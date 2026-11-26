@@ -1,0 +1,3 @@
+Moving crates preserve a full fruit diameter at either wall PASS
+Crate freezes before contact PASS
+137.5% simulation rate; 240 Hz integration step; unchanged initial coordinates PASS

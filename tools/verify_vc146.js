@@ -1,0 +1,4 @@
+const fs=require('fs'),path=require('path');const h=fs.readFileSync(path.join(__dirname,'verify_engine_node.js'),'utf8').split('let solver=')[0];eval(h+`
+const assert=(v,m)=>{if(!v)throw Error(m)};
+for(const n of [21,100,300]){C.ZF.start(n);const g=C.ZF.G;g.actionAt133=1e6;C.ZF.action134('snake');const s=g.hazard144, count=g.remaining;assert(s.dur===8,'duration');for(let i=0;i<Math.ceil(s.dur*.44*60);i++)C.ZF.advance(1/60);const x=s.x;for(let i=0;i<50;i++){C.ZF.advance(1/60);C.ZF.render();}assert(s.x===x,'hold');assert(s.items.some(e=>e.taken&&e.hazard144==='snake'),'hold lock');assert(s.items.every(e=>e.hazard144!=='snake'||e.taken),'reservation consistency');for(let i=0;i<Math.ceil(s.dur*60);i++)C.ZF.advance(1/60);assert(!g.hazard144&&g.remaining===count&&g.hang.every(e=>!e.hazard144),'clear');console.log('Snake hold and release',n,'PASS');}
+`);

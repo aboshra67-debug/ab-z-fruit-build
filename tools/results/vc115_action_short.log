@@ -1,0 +1,4 @@
+Ice two-tap/no premature match PASS
+Bounded rotation + crate breaks after 3 distinct fruit collisions PASS
+Bird carry rescue restores original slot and prevents repeat rewards PASS
+Bomb detonates, releases nearby fruit, preserves remaining count PASS

@@ -1,0 +1,8 @@
+const fs=require('fs'),path=require('path');const h=fs.readFileSync(path.join(__dirname,'verify_engine_node.js'),'utf8').split('let solver=')[0];eval(h+`
+const z=C.ZF,M=C.Matter,assert=(v,m)=>{if(!v)throw Error(m)};
+// Actual stable channel fruit and an exposed reachable different fruit, with its matching donor hidden.
+z.start(21,'classic');let g=z.G;g.actionAt133=1e8;g.scroll=null;const e=g.hang.filter(e=>z.isVisible(e)&&!e.bomb&&!e.caged&&!e.ice&&!e.plate&&!e.mystery).sort((a,b)=>b.y-a.y)[0];assert(z.release(e),'release');M.Body.setPosition(e.body,{x:360,y:g.floorY-g.r*1.1});M.Body.setVelocity(e.body,{x:0,y:0});
+let usable=g.hang.filter(f=>!f.bomb&&!f.caged&&!f.ice&&!f.plate&&!f.mystery&&z.isVisible(f));const donor=usable.find(f=>f.kind===e.kind);const receiver=usable.find(f=>f.kind!==e.kind);assert(donor&&receiver,'setup');for(let f of g.hang.slice())if(f!==donor&&f!==receiver&&f.hb)M.Composite.remove(g.engine.world,f.hb);g.hang=[donor,receiver];M.Body.setPosition(donor.hb,{x:donor.x=360,y:donor.y=-300});M.Body.setPosition(receiver.hb,{x:receiver.x=180,y:receiver.y=g.mouthY-g.r*4});
+const before=g.hang.map(f=>f.kind).sort().join(','),coins=z.save.coins,rem=g.remaining;g.time=46;g.lastProgress155=0;g.hintAt155=45;z.advance(1/60);assert(g.assistSwap160,'adaptive swap');assert(receiver.kind===e.kind&&g.hintIds155.includes(receiver.id),'reachable matching receiver');assert(g.hang.map(f=>f.kind).sort().join(',')===before&&g.remaining===rem&&z.save.coins===coins,'preserve counts and wallet');
+z.start(21,'timed');g=z.G;g.time=46;g.hintAt155=45;z.advance(1/60);assert(!g.assistSwap160&&!g.assistRescue160,'challenge isolated');console.log('VC160 adaptive rescue swap, inventory, campaign-only PASS');
+`);

@@ -5,10 +5,10 @@ SOLVER = """
 (n)=>{
   ZF.start(n); const G=ZF.G; let steps=0;
   const info={n, r:G.r, cap:G.cfg.cap, total:G.total, obst:G.obst.length};
-  function free(e){return e.state==='hang'&&!e.bomb&&!e.caged&&!e.stung;}
+  function free(e){return e.state==='hang'&&ZF.isVisible(e)&&!e.bomb&&!e.caged&&!e.stung;}
   while(G.state==='play' && steps<5000){
     steps++;
-    for(const e of G.hang.slice()) if(e.bomb) ZF.release(e);
+    for(const e of G.hang.slice()) if(e.bomb&&ZF.isVisible(e)) ZF.release(e);
     if(G.bird && (G.bird.state==='fly'||G.bird.state==='carry')) { try{ ZF.scare(); }catch(e){} }
     for(const b of G.bees.slice()) { if(b.target){b.target.stung=false;b.target.taken=false;} b.state='leave'; }
     const settled=G.dyn.every(e=>e.body.speed<0.35 && e.body.position.x>G.chL-6 && e.body.position.x<G.chR+6 && e.body.position.y>G.mouthY-G.r*0.5);

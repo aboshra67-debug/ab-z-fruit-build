@@ -1,0 +1,7 @@
+Level initializations, exact counts, even pairs, hidden input PASS; level,total,visible,hidden,r [[1,24,23,1,44],[5,42,31,11,40],[10,68,33,35,37],[20,112,36,76,36],[25,132,32,100,36],[50,200,42,158,33],[80,290,62,228,30],[120,396,57,339,30],[300,500,65,435,30]]
+Reserve downward motion PASS
+Outside match rejected / inside match accepted PASS
+Supported upper fruit waits; lower descends first; no jump, pass-through or overlap beyond polygon tolerance PASS
+Blocked reserve waits, independent lane moves, cleared lane resumes continuously PASS
+Obstructed tap queues at the same coordinates and releases exactly once PASS
+4 fruits safe; moving fifth fruit triggers loss PASS

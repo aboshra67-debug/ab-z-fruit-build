@@ -1,0 +1,3 @@
+# VC147 — 1.5.4
+Safe patch from VC146. Snake uses length 1.65 screen widths with tapered textured body and reshaped head; holds in fruit field during 10-second appearance. Spider enlarged, articulated eight legs; silk and reserved fruit persist until free scissors or five consecutive taps. No new obstacles or save changes.
+Node engine tests passed for levels 1,17,21,100,200,300 at 412x915 and 360x800. JavaScript syntax passed. Browser navigation blocked by environment, no physical Android or visual/FPS validation. APK repacked from VC146 (game.js, index.html, style.css and AndroidManifest version only), v2 RSA signature and content digest checked with original certificate; no Gradle build. No signing key in source.

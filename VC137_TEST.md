@@ -1,0 +1,1 @@
+VC137 partial action patch. Node syntax, VC136 bee, VC134 300 level initialization and free freeze/ice/falcon/monkey/wind at 412x915 and 360x640, VC132 basket PASS. Legacy VC133 paid freeze test incompatible with free mode. Falcon uses existing procedural renderer, not new art. No Gradle or device test. Layout and fruit distribution unchanged.

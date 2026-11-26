@@ -1,0 +1,3 @@
+const fs=require('fs'),path=require('path'),vm=require('vm');const h=fs.readFileSync(path.join(__dirname,'verify_engine_node.js'),'utf8').split('let solver=')[0];eval(h+`
+for(let n=1;n<=11;n++){C.ZF.start(n);let g=C.ZF.G,st=[];if(g.total!==g.cfg.count||g.cfg.cap!==4||g.hang.filter(e=>!e.bomb).length!==g.total)throw Error('count '+n);for(const e of g.order){if(st.at(-1)?.kind===e.kind)st.pop();else{st.push(e);if(st.length>3)throw Error('stack '+n);}}if(st.length)throw Error('pairs '+n);if(n<=10&&g.slopeRightY!==g.slopeTopY)throw Error('tutorial terrain '+n);if(n===11&&g.cfg.layout!==1)throw Error('corrected layout');}console.log('Final levels 1–11: exact counts, ordered pairs, capacity and selected terrain PASS');
+`)

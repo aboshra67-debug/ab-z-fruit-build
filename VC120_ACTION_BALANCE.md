@@ -1,0 +1,14 @@
+# AB Z Fruit V1.2.7 / VC120
+Baseline: V1.2.6 / VC119, package com.absoftware.zfruit. No previous file removed. Same save key and schema, 300 levels, fruit count curve, base 4-slot channel, and channel-only matching. Same independent downward-feed function and spawn collision rules. No forced jumps, teleports, collision bypass or new impulses.
+
+## Changes
+- Fixed-step physics scheduling increased from 300 to 330 steps per real second (10% versus VC119), unchanged 1/240 second integration delta. This increases physics workload; real device FPS is not yet measured. Matching remains immediate on valid contact.
+- Bottom terrain geometry lowered by 12 logical pixels, with a small increase in slope rise. The basket is fitted above the lower HUD. Initial layouts vary; visible density improves on some levels, not uniformly. No reduction in total fruit counts or type curve.
+- Levels 11–20 use shorter nested pair groups to soften the early difficulty spike while preserving four-slot logical feasibility. Advanced stages retain the existing depth and count curve.
+- Earlier bee visits, more frequent visits, a three-second temporary fruit lock, and earlier bird encounters. Bird holds the fruit at its reserved slot for two seconds; scare or timeout restores control without forced drop. Insect/bird target rings and local feedback; no whole-board shake for blocked taps.
+- Crate animation adjusted within the existing collision-safe travel bounds; distinct collision sounds, crack indicator, rock impact ring, larger local debris; combo sound. Existing sound and vibration preferences apply. Sounds are synthesized, not recordings. Particles do not alter physics.
+- Intentional change: bombs damage crates in range, thaw ice and weaken cages instead of automatically releasing unrelated fruit. Defuse still works. No involuntary launch or drop. Original test retained as legacy, new test exercises revised bomb behavior.
+- Tests: 300 generated counts and logical order checks, independent reserve motion, queued tap, matching boundary, overflow, crate clearance/impact, ice, bird rescue/timeout, bee temporary lock, bomb damage without forced drop, fixed-step speed on both 412x915 and 360x640. Controlled solver outcomes in tools/results/vc120_engine_*.log. These are simulated gameplay paths, not evidence of all possible paths or real-player difficulty parity.
+- Browser preview rendered without JS errors. APK rebuilt from existing VC119 archive with updated assets and version metadata, not a fresh Gradle build; native DEX/resources unchanged. Existing test-key v2 RSA signature and chunk digests verified, matching VC119 certificate; ZIP and alignment verified. Physical Android testing and Play production signing not performed; no GitHub changes.
+
+All 16 controlled solver paths won on both screen sizes. Tall times: 10=83s, 12=101s, 80=345s, 117=468s, 300=603s. Short: 10=86s, 12=100s, 80=352s, 117=487s, 300=617s.

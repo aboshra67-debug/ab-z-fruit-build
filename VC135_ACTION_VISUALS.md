@@ -1,0 +1,1 @@
+VC135: enhanced procedural character rendering, wind curls and leaves, synthesized action audio, optional vibration, prioritized rescue controls and top toast. Existing movement and physics unchanged. Node tests pass at 412x915 and 360x640; no Android runtime test.

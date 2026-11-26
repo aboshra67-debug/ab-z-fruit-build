@@ -1,0 +1,1 @@
+VC140 continuation: 12 texture-preserving procedural monkey deformation frames, loaded with fallback to original sprite. Existing VC140 wind and falcon changes retained. No recorded natural audio added. No Android device test or APK build performed in this continuation. Existing debug signing configuration unchanged.

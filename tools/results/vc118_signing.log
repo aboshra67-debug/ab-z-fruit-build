@@ -1,0 +1,2 @@
+PASS: v2 RSA signature and chunk digests; original and new certificate SHA256: 8a9d7359216034cd71d2060fbbad454ace828124c0d3691636f3d53df914a28a
+PASS: all source web assets byte-identical, CRC, uncompressed alignment, native dex/resources preserved, version 118/1.2.5

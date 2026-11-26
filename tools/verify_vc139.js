@@ -1,0 +1,4 @@
+const fs=require('fs'),path=require('path');const h=fs.readFileSync(path.join(__dirname,'verify_engine_node.js'),'utf8').split('let solver=')[0];eval(h+`
+for(let n of [1,20,100,300]){C.ZF.start(n);let g=C.ZF.G;let before=new Map(g.hang.map(e=>[e.id,[e.x,e.y]]));C.ZF.action134('wind');C.ZF.advance(.2);if(!g.windMoved139)throw Error('wind no movement '+n);if(!g.hang.some(e=>before.has(e.id)&&before.get(e.id)[0]!==e.x))throw Error('wind x unchanged '+n);if(g.hang.length!==before.size)throw Error('count');console.log('wind PASS',n,g.windMoved139);C.ZF.render();}
+C.ZF.start(1);let g=C.ZF.G;C.ZF.action134('falcon');let e=g.bird.target,x=e.x,y=e.y;C.ZF.advance(5);if(e.x===x&&e.y===y)throw Error('falcon did not relocate');if(e.birdHeld)throw Error('held');console.log('falcon relocation PASS');C.ZF.render();
+`);

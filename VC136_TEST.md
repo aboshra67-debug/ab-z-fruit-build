@@ -1,0 +1,1 @@
+VC136 partial action patch: bee enabled in test mode, same-kind fallback, manual action panel, existing bird sprite animation, larger monkey, stronger wind. Node tests pass; no device or Gradle build verified.

@@ -1,0 +1,3 @@
+Level initializations, exact counts, even pairs, hidden input PASS; level,total,visible,hidden,r [[1,24,21,3,38],[5,42,17,25,39],[10,68,29,39,33],[20,112,21,91,33],[25,132,23,109,33],[50,200,29,171,31],[80,290,42,248,28],[120,396,42,354,28],[300,500,43,457,28]]
+Reserve downward motion PASS
+Outside match rejected / inside match accepted PASS

@@ -1,0 +1,12 @@
+level 6 layout 0 leftRise 139.5 rightRise 139.5 obstacles [ [ 'wood', 542, 752 ] ]
+level 7 layout 1 leftRise 160.4 rightRise 131.1 obstacles [ [ 'wood', 179, 752 ] ]
+level 8 layout 2 leftRise 131.1 rightRise 160.4 obstacles [ [ 'wood', 542, 749 ] ]
+level 9 layout 3 leftRise 156.2 rightRise 156.2 obstacles [ [ 'wood', 178, 737 ] ]
+level 10 layout 4 leftRise 126.9 rightRise 126.9 obstacles [ [ 'wood', 542, 745 ] ]
+level 11 layout 0 leftRise 139.5 rightRise 139.5 obstacles [ [ 'wood', 180, 763 ], [ 'rock', 541, 758 ] ]
+level 12 layout 1 leftRise 160.4 rightRise 131.1 obstacles [ [ 'wood', 178, 749 ], [ 'rock', 546, 762 ] ]
+level 13 layout 2 leftRise 131.1 rightRise 160.4 obstacles [ [ 'wood', 542, 750 ], [ 'rock', 175, 760 ] ]
+level 14 layout 3 leftRise 156.2 rightRise 156.2 obstacles [ [ 'wood', 178, 735 ], [ 'rock', 556, 749 ] ]
+level 15 layout 4 leftRise 126.9 rightRise 126.9 obstacles [ [ 'wood', 542, 754 ], [ 'rock', 172, 759 ] ]
+300 levels: all five layouts; descending slopes, real collider angles, obstacle-to-ground clearance and 4-slot capacity PASS
+Bee: delayed first arrival, longer cooldown and 1.5-second lock without forced drop PASS

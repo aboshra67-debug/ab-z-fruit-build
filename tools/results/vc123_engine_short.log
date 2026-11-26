@@ -1,0 +1,4 @@
+{"n":1,"r":34,"cap":4,"total":24,"obst":0,"state":"won","deadlock":false,"bird":0,"rem":0,"time":30,"hang":0,"dyn":0,"steps":67,"maxStack":3}
+{"n":10,"r":30,"cap":4,"total":68,"obst":1,"state":"won","deadlock":false,"bird":0,"rem":0,"time":85,"hang":0,"dyn":0,"steps":190,"maxStack":4}
+{"n":13,"r":29,"cap":4,"total":82,"obst":2,"state":"won","deadlock":false,"bird":1,"rem":0,"time":103,"hang":0,"dyn":0,"steps":229,"maxStack":4}
+{"n":25,"r":29,"cap":4,"total":132,"obst":2,"state":"won","deadlock":false,"bird":1,"rem":0,"time":164,"hang":0,"dyn":0,"steps":364,"maxStack":4}

@@ -1,0 +1,7 @@
+{'level': 11, 'layout': 0, 'left': 883.349596, 'right': 883.349596, 'visible': 23}
+{'level': 12, 'layout': 1, 'left': 862.4263354000001, 'right': 891.71890024, 'visible': 23}
+{'level': 13, 'layout': 2, 'left': 891.71890024, 'right': 862.4263354000001, 'visible': 19}
+{'level': 14, 'layout': 3, 'left': 866.6109875200001, 'right': 866.6109875200001, 'visible': 19}
+{'level': 15, 'layout': 4, 'left': 895.90355236, 'right': 895.90355236, 'visible': 21}
+Bee hint shown once, hidden after 1.2 s and not repeated in next stage PASS
+Browser errors: []

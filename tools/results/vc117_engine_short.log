@@ -1,0 +1,7 @@
+{"n":1,"r":38,"cap":4,"total":24,"obst":0,"state":"won","deadlock":false,"bird":0,"rem":0,"time":36,"hang":0,"dyn":0,"steps":80,"maxStack":3}
+{"n":5,"r":39,"cap":4,"total":42,"obst":0,"state":"won","deadlock":false,"bird":0,"rem":0,"time":64,"hang":0,"dyn":0,"steps":142,"maxStack":4}
+{"n":10,"r":33,"cap":4,"total":68,"obst":1,"state":"won","deadlock":false,"bird":0,"rem":0,"time":104,"hang":0,"dyn":0,"steps":232,"maxStack":4}
+{"n":25,"r":33,"cap":4,"total":132,"obst":2,"state":"won","deadlock":false,"bird":1,"rem":0,"time":202,"hang":0,"dyn":0,"steps":450,"maxStack":4}
+{"n":80,"r":28,"cap":4,"total":290,"obst":2,"state":"won","deadlock":false,"bird":2,"rem":0,"time":437,"hang":0,"dyn":0,"steps":972,"maxStack":4}
+{"n":117,"r":28,"cap":4,"total":392,"obst":2,"state":"won","deadlock":false,"bird":2,"rem":0,"time":596,"hang":0,"dyn":0,"steps":1325,"maxStack":4}
+{"n":300,"r":28,"cap":4,"total":500,"obst":2,"state":"won","deadlock":false,"bird":4,"rem":0,"time":739,"hang":0,"dyn":0,"steps":1642,"maxStack":4}

@@ -17,13 +17,15 @@
       <button class="ib" id="btnPause"><img src="assets/ui/pause.png" alt=""></button>
       <div class="pill" id="pillCoins"><img src="assets/el/coin.png" alt=""><b id="coinsTxt">0</b></div>
       <div class="pill" id="pillLevel"><span data-t="level">المستوى</span> <b id="lvlTxt">1</b></div>
+      <div id="counter"><span class="counterLabel" data-t="remaining">المتبقي</span><img id="cntIcon" src="assets/fruits/mango.png" alt=""><b id="cntTxt">0</b></div>
     </div>
-    <div id="hint" class="hidden"></div>
-    <div id="hudBottom">
-      <div class="pu" id="puTrash"><img src="assets/ui/trash.png" alt=""><span class="cost"><img src="assets/el/coin.png" alt=""><i>25</i></span></div>
-      <div class="pu" id="puPlus"><img src="assets/ui/plus.png" alt=""><span class="cost"><img src="assets/el/coin.png" alt=""><i>30</i></span></div>
-      <div class="pu" id="puShuffle"><img src="assets/ui/shuffle.png" alt=""><span class="cost"><img src="assets/el/coin.png" alt=""><i>20</i></span></div>
-      <div id="counter"><img id="cntIcon" src="assets/fruits/mango.png" alt=""><b id="cntTxt">0</b></div>
+    <div id="hint" class="hidden"></div><div id="challenge155" class="hidden"><span id="mode155"></span><b id="timer155"></b><span id="score155"></span></div>
+<div id="def149_bar" aria-label="Defense tools"><button type="button" class="def149" id="def149_cut"><img class="def150_art" src="assets/ui/def150_cut.png" alt=""/><span id="def149_l_cut">المقص</span><b id="def149_n_cut">3</b></button><button type="button" class="def149" id="def149_shield"><img class="def150_art" src="assets/ui/def150_shield.png" alt=""/><span id="def149_l_shield">الدرع</span><b id="def149_n_shield">3</b></button><button type="button" class="def149" id="def149_spray"><img class="def150_art" src="assets/ui/def150_spray.png" alt=""/><span id="def149_l_spray">المبيد</span><b id="def149_n_spray">3</b></button><button type="button" class="def149" id="def149_fan"><img class="def150_art" src="assets/ui/def150_fan.png" alt=""/><span id="def149_l_fan">المروحة</span><b id="def149_n_fan">3</b></button><button type="button" class="def149" id="def149_anchor"><img class="def150_art" src="assets/ui/def150_anchor.png" alt=""/><span id="def149_l_anchor">المرساة</span><b id="def149_n_anchor">3</b></button><button id="def149_shop" type="button">متجر</button></div><div id="def149_panel" class="hidden"><div id="def149_wallet"></div><button type="button" id="buy149_cut">المقص</button><button type="button" id="buy149_shield">الدرع</button><button type="button" id="buy149_spray">المبيد</button><button type="button" id="buy149_fan">المروحة</button><button type="button" id="buy149_anchor">المرساة</button><button type="button" id="def149_close">إغلاق</button></div>
+    <div id="hudBottom"><button class="help133" id="pu_hand" aria-label="hand"><img class="tool163" src="assets/ui/tool163_hand.svg" alt=""><small>مجاني</small></button><button class="help133" id="pu_swap" aria-label="swap"><img class="tool163" src="assets/ui/tool163_swap.svg" alt=""><small>مجاني</small></button><button class="help133" id="pu_freeze" aria-label="freeze"><img class="tool163" src="assets/ui/tool163_freeze.svg" alt=""><small>مجاني</small></button><button class="help133" id="pu_blast" aria-label="blast"><img class="tool163" src="assets/ui/tool163_blast.svg" alt=""><small>مجاني</small></button>
+      <div class="pu" id="puTrash"><img class="tool163" src="assets/ui/tool163_trash.svg" alt=""><span class="cost"><img src="assets/el/coin.png" alt=""><i>مجاني</i></span></div>
+      <div class="pu" id="puPlus"><img class="tool163" src="assets/ui/tool163_plus.svg" alt=""><span class="cost"><img src="assets/el/coin.png" alt=""><i>مجاني</i></span></div>
+      <div class="pu" id="puShuffle"><img class="tool163" src="assets/ui/tool163_shuffle.svg" alt=""><span class="cost"><img src="assets/el/coin.png" alt=""><i>مجاني</i></span></div>
+
     </div>
   </div>
 
@@ -47,7 +49,7 @@
       <button class="big green" id="btnPlay"><img src="assets/ui/play.png" class="pi" alt=""><span><span data-t="play">العب</span> · <span data-t="level">المستوى</span> <b id="menuLvl">1</b></span></button>
       <div class="row2">
         <button class="big orange" id="btnLevels" data-t="levels">المراحل</button>
-        <button class="big purple dis" id="btnOnline"><span data-t="online">تحدي أونلاين</span><em data-t="soon">قريبًا</em></button>
+        <button class="big purple" id="btnModes" data-t="modes155">تحديات اللعب</button>
       </div>
     </div>
     <div class="menuIcons">
@@ -58,6 +60,8 @@
     <div class="brand">AB Software</div>
   </div>
 
+  <div class="screen hidden" id="sModes155"><div class="topbar"><button class="ib" id="modesBack155"><img src="assets/ui/back.png" alt=""></button><h2 data-t="modes155">تحديات اللعب</h2><span class="sp"></span></div><div class="modes155"><button class="big green" id="classic155" data-t="classic155">اللعب الكلاسيكي</button><button class="big orange" id="timed155" data-t="timed155">تحدي الوقت</button><button class="big blue" id="speed155" data-t="speed155">تحدي السرعة · 60 ثانية</button><button class="big purple" id="action155" data-t="action155">تحدي الأكشن</button><p id="records155"></p></div></div>
+  <div class="popup hidden" id="pChallenge155"><div class="card"><h2 id="challengeTitle155"></h2><p id="challengeResult155"></p><p id="challengeBest155"></p><button class="big green" id="challengeRetry155" data-t="replay">إعادة</button><button class="big blue" id="challengeHome155" data-t="home">الرئيسية</button></div></div>
   <!-- level select -->
   <div class="screen hidden" id="sLevels">
     <div class="topbar"><button class="ib" id="btnLevelsBack"><img src="assets/ui/back.png" alt=""></button><h2 data-t="levels">المراحل</h2><span class="sp"></span></div>
@@ -77,10 +81,12 @@
 
   <div class="popup hidden" id="pWin">
     <div class="card win">
+      <img class="resultGlow" src="assets/world/win_glow.png" alt="">
       <h2 data-t="win">أحسنت!</h2>
       <div class="stars"><img id="st1" src="assets/el/star.png" alt=""><img id="st2" src="assets/el/star.png" alt=""><img id="st3" src="assets/el/star.png" alt=""></div>
       <div class="info"><span data-t="level">المستوى</span> <b id="winLvl">1</b></div>
       <div class="info"><img src="assets/el/coin.png" class="ci" alt=""> +<b id="winCoins">0</b></div>
+      <p id="winReason" class="winReason"></p>
       <button class="big green" id="wNext" data-t="next">التالي</button>
       <div class="row2">
         <button class="big orange" id="wReplay" data-t="replay">إعادة</button>
@@ -91,9 +97,12 @@
 
   <div class="popup hidden" id="pLose">
     <div class="card lose">
+      <div class="resultFruit"><img src="assets/fruits/mango.png" alt=""><img src="assets/fruits/strawberry.png" alt=""><img src="assets/fruits/grapes.png" alt=""></div>
       <h2 data-t="full">المجرى امتلأ!</h2>
+      <div class="resultStats"><span><span data-t="level">المستوى</span> <b id="loseLvl">1</b></span><span><span data-t="remaining">المتبقي</span> <b id="loseRemaining">0</b></span></div>
       <p data-t="fullHint">حاول تنزّل الفواكه المتشابهة ورا بعض.</p>
       <button class="big green" id="lRetry" data-t="retry">حاول تاني</button>
+      <button class="big orange" id="lCoins" data-t="continueCoins">إنقاذ بـ 35 عملة</button>
       <button class="big purple" id="lAd"><img src="assets/ui/reward_ad.png" class="pi" alt=""><span data-t="continueAd">كمّل بإعلان</span></button>
       <button class="big blue" id="lHome" data-t="home">الرئيسية</button>
     </div>
@@ -105,7 +114,7 @@
       <label class="setrow"><span data-t="sound">الصوت</span><input type="checkbox" id="setSound"></label>
       <label class="setrow"><span data-t="vibration">الاهتزاز</span><input type="checkbox" id="setVib"></label>
       <div class="setrow"><span data-t="language">اللغة</span><div class="seg"><button id="langAr">العربية</button><button id="langEn">English</button></div></div>
-      <div class="setrow about"><span>AB Software · v1.0.0</span></div>
+      <div class="setrow about"><span>AB Software · v1.6.7</span></div>
       <button class="big green" id="setClose" data-t="close">إغلاق</button>
     </div>
   </div>

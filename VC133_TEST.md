@@ -1,0 +1,1 @@
+VC133: new help buttons, timed ice, lateral bird movement, wind kind rotation, action drops, gold bonus. Node tests: 300 initializations, timed ice/freeze, basket regression. No Android runtime test. Existing bird art reused; monkey is notification only.

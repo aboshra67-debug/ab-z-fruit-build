@@ -1,0 +1,1 @@
+VC139 / 1.4.6: new transparent falcon frames and monkey sprite; wind exchanges occupied fruit slots in batches, preserving count and syncing collision bodies; falcon carries visible fruit and exchanges destination slots. Node tests: wind levels 1,20,100,300; falcon relocation. Wind uses discrete swaps, not continuous rigid-body wind simulation. No Android device test.

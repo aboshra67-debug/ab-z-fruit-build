@@ -1,0 +1,3 @@
+Supported upper fruit waits; lower descends first; no jump, pass-through or overlap beyond polygon tolerance PASS
+Blocked reserve waits, independent lane moves, cleared lane resumes continuously PASS
+Obstructed tap queues at the same coordinates and releases exactly once PASS

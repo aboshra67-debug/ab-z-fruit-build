@@ -1,0 +1,11 @@
+Partial safe patch from VC137. Version 138 / 1.4.5. Existing bird sprite frames used with procedural fallback; duplicate carried fruit rendering removed; wind visual direction follows actual movement; bee transformation ring and particles; monkey approaches from the side with impact ring. Existing fruit art, level generation, physics and test mode unchanged. Node syntax, VC136 bee, VC134 300 level initialization and action tests at 412x915 and 360x640, VC132 basket passed. No Android build, signature or real visual/audio test. New character art and full level solvability not completed.
+Follow-up: refined synthesized victory and explosion audio, added thaw particles and blast smoke, refined booster button visual feedback. Node syntax and verify_vc134 (300 initialization and action checks), verify_vc136 (bee), verify_vc132_basket passed. No new character art, distribution changes, audio listening, Android build or signing. Existing save key zfruit_v1 retained.
+
+
+2026-11-25 delivery verification
+- Recovered the exact original test signing certificate from GitHub app/test-debug.keystore; workflow run 45578703111 confirmed SHA-256 8a9d7359216034cd71d2060fbbad454ace828124c0d3691636f3d53df914a28a. No signing key is bundled here.
+- APK rebuilt by repackaging the VC137 native container (not Gradle); updated web assets and AndroidManifest version fields. No native code changes. Package com.absoftware.zfruit, VC138, V1.4.5.
+- Independently checked original and output APK Signature Scheme v2 RSA signatures, content digests, certificate match, ZIP CRC and stored-entry alignment, exact source web assets, and preserved native DEX/resources. Save key zfruit_v1 retained.
+- Node syntax, 300 level initialization, free freeze/ice/falcon/monkey/wind, bee pair conversions, and basket collection tests passed (412x915 and 360x640).
+- No physical Android install, Android SDK apksigner, full Gradle rebuild, visual/audio playback, or proof of full solvability for all levels. VC138 scope remains the revised partial action patch, not a full art overhaul.
+- To rebuild later, use the matching key in the GitHub repo, not the nonmatching encrypted private key. Verify certificate before building. Treat the shared test key as unsuitable for a production Play Store signing key.

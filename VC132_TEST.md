@@ -1,0 +1,1 @@
+Fixed radius 34; aspect-fit rendering; friction and timing adjustment; matched pair visual collection and delayed score; muted fruit-free backgrounds; level tile styling. Existing channel geometry retained. No Android runtime verification.

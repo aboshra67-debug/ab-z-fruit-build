@@ -85,3 +85,173 @@ button{font-family:inherit;cursor:pointer;border:0;background:none;color:inherit
 .seg{display:flex;border:2px solid #c4520e;border-radius:12px;overflow:hidden}.seg button{padding:6px 12px;font-weight:800;font-size:16px;color:#c4520e}.seg button.on{background:#e8651a;color:#fff}
 .adbar{height:18px;border-radius:10px;background:rgba(0,0,0,.2);overflow:hidden}.adbar i{display:block;height:100%;width:0;background:linear-gradient(#b06af0,#6a2fc0)}
 #toast{position:absolute;left:50%;bottom:22%;transform:translateX(-50%);background:rgba(0,0,0,.75);padding:10px 18px;border-radius:16px;font-weight:800;font-size:18px;z-index:30;max-width:86%;text-align:center}
+
+/* Visual refresh V1.1 – live controls, no baked-in text. */
+#sSplash,#sLevels{background:linear-gradient(180deg,rgba(12,91,142,.12),rgba(13,65,29,.22)),url('assets/world/sky0.jpg') center/cover no-repeat}
+#sSplash .mascot{content:url('assets/world/splash_bird.png');width:min(48vw,205px)}
+#sMenu{background:linear-gradient(180deg,rgba(14,76,129,.18),transparent 60%,rgba(45,22,8,.42))}
+#sMenu .logo{margin-top:calc(max(env(safe-area-inset-top),10px) + 48px)}
+#hudTop{top:max(env(safe-area-inset-top),7px);left:8px;right:8px;gap:5px}
+#hudTop .ib{width:clamp(38px,11vw,48px);height:clamp(38px,11vw,48px)}
+.pill{border:2px solid #ffe9a6;background:linear-gradient(#a86c29,#673711);box-shadow:0 3px 0 #603416,0 5px 9px #38200a55;font-size:clamp(13px,4vw,18px);padding:4px 9px;white-space:nowrap}
+#hudBottom{height:clamp(66px,20vw,90px);bottom:max(env(safe-area-inset-bottom),5px);display:flex;align-items:center;justify-content:space-between;gap:4px;padding:0 7px;background:linear-gradient(0deg,#472307a0,transparent);direction:ltr}
+.pu{position:relative;bottom:auto;width:clamp(39px,13vw,56px);height:clamp(39px,13vw,56px);margin-bottom:13px;flex:none}
+#puTrash,#puPlus,#puShuffle{left:auto}
+.pu .cost{bottom:-15px;background:#673711;border:1px solid #f8c76a;font-size:11px;padding:0 5px 0 2px}.pu .cost img{width:13px;height:13px}
+#counter{position:relative;right:auto;bottom:auto;gap:3px;min-width:61px;justify-content:center;background:linear-gradient(#87511c,#542e13);border:2px solid #ffdc87;border-radius:16px;padding:5px 6px;font-size:clamp(16px,5vw,25px);box-shadow:0 3px 0 #44290c;flex-wrap:wrap;max-width:28vw}
+#counter img{width:24px;height:24px}.counterLabel{width:100%;font-size:10px;line-height:1;text-align:center;color:#ffe4a0}
+.popup{background:rgba(8,31,42,.70);padding:10px}
+.card{width:min(92%,370px);max-height:95%;overflow:auto;background:linear-gradient(#fffbea,#ffe0a5);border:4px solid #efaa40;border-radius:25px;padding:16px 14px;gap:10px;box-shadow:0 5px 0 #8a4318,0 12px 34px #0008}
+.card h2{font-size:clamp(24px,7vw,32px);line-height:1.3;color:#873610;text-shadow:0 1px #fff}
+.card p{font-size:clamp(14px,4.1vw,17px);line-height:1.55;color:#663c20}
+.card.lose{background:linear-gradient(#fff6d9,#ffcf90);border-color:#e98338}.card.lose h2{color:#b33b24}
+.card .big,.big{color:#fff;line-height:1.25;font-size:clamp(16px,5vw,23px);padding:10px 9px;border:2px solid #fff2cf;text-shadow:0 2px 1px #49280c88}
+.resultFruit{height:58px;display:flex;justify-content:center;align-items:center;gap:3px}.resultFruit img{width:58px;height:58px;object-fit:contain;filter:drop-shadow(0 4px 3px #8d4c1f44)}
+.resultStats{display:flex;justify-content:center;gap:8px;flex-wrap:wrap}.resultStats>span{background:#995723;color:#fff6dc;border:1px solid #e6b66c;border-radius:12px;padding:5px 10px;font-weight:800;font-size:14px}
+.resultGlow{width:56px;height:44px;object-fit:contain;align-self:center;margin-bottom:-8px}.stars img{width:clamp(48px,17vw,74px);height:clamp(48px,17vw,74px)}
+.loadbar{border-color:#ffe8a5;background:#70401d;box-shadow:0 4px 0 #402b16;max-width:360px}
+@media(max-height:600px){.card{gap:6px;padding:9px}.resultFruit{height:40px}.resultFruit img{width:40px;height:40px}.card .big{padding:8px}.menuIcons{margin-bottom:19px}.menuBtns{gap:7px}#sMenu .mascot{width:100px}}
+@media(prefers-reduced-motion:reduce){.mascot,.lv.cur{animation:none}.card,#counter.bump{animation:none}}
+
+/* V1.1.1: softer daylight and lighter earth-toned HUD */
+#sMenu{background:linear-gradient(180deg,rgba(14,76,129,.06),transparent 60%,rgba(110,58,14,.15))}
+#sSplash,#sLevels{background:linear-gradient(180deg,rgba(255,250,220,.07),rgba(255,245,195,.06)),url('assets/world/sky0.jpg') center/cover no-repeat}
+#hudBottom{background:linear-gradient(0deg,#a2662450,transparent)}
+.pill{background:linear-gradient(#ce8a38,#995521)}
+#counter{background:linear-gradient(#c17f30,#955323)}
+.pu .cost{background:#9c591e}
+
+/* Premium gameplay: smaller HUD, brighter glass and clean typography. */
+#hudTop .pill{background:linear-gradient(#ffdc82,#d78a32);color:#63300d;text-shadow:0 1px #fff8;box-shadow:0 3px 0 #a05c23,0 4px 10px #65401633;border-color:#fff2b4}
+#hudTop .pill img{width:24px;height:24px} #hudBottom{height:clamp(56px,17vw,77px);background:linear-gradient(0deg,#a2662420,transparent)}
+#counter{background:linear-gradient(#fff3b2,#e5a14b);color:#663510;text-shadow:0 1px #fff9;border-color:#fff2b4;box-shadow:0 3px 0 #a56526} .counterLabel{color:#754213}
+#hint{top:calc(max(env(safe-area-inset-top),10px) + 48px);font-size:14px;padding:6px 10px;pointer-events:none}
+.card{border-radius:28px;box-shadow:0 5px 0 #9c5820,0 16px 40px #1235} .card .big{min-height:42px} .popup{background:rgba(12,43,55,.55)}
+
+/* VC115: softer color, readable reward feedback. */
+#hudTop .pill,#counter{background:linear-gradient(#eac78c,#c58a49);border-color:#eed7ac;text-shadow:none}
+#hud .ib img,#hud .pu>img,.resultFruit img,.resultGlow{filter:saturate(.82) drop-shadow(0 2px 2px #0003)}
+.winReason{font-size:13px;line-height:1.45;color:#754c2b;margin:2px 0 12px;text-shadow:none}
+
+/* VC125 test HUD: balanced controls without changing physics geometry. */
+#hudTop{display:grid;grid-template-columns:44px 1fr 1fr;gap:8px;align-items:center;left:12px;right:12px}
+#hudTop .pill{justify-content:center;min-width:0;padding:5px 6px}
+#hudBottom{display:grid;grid-template-columns:repeat(3,minmax(0,1fr)) minmax(65px,1.2fr);justify-items:center;gap:5px;padding:0 10px}
+#counter{width:100%;max-width:100%;box-sizing:border-box}
+@media(max-width:340px){#hudTop{grid-template-columns:38px 1fr 1fr;gap:4px;left:6px;right:6px}#hudBottom{padding:0 5px;gap:3px}}
+
+/* VC132 */
+.lv{border-radius:22%;border-color:#ffe2a0}.lv:nth-child(5n+2),.lv:nth-child(5n+4){background:radial-gradient(circle at 35% 30%,#ffe6a0,#dc852b)}.lv.cur{background:radial-gradient(circle at 35% 30%,#9cff6a,#2fae12)}
+
+#hudBottom{grid-template-columns:repeat(7,minmax(0,1fr)) minmax(55px,1.3fr);gap:2px;padding:0 4px} #hudBottom .pu{width:100%;max-width:44px;height:38px} .help133{pointer-events:auto;border:1px solid #ffe2a3;border-radius:10px;background:#a76b35;color:white;font-size:22px;padding:2px;min-width:0;width:100%;height:44px;line-height:23px}.help133 small{display:block;font-size:11px;line-height:12px;color:#fff3b2}
+
+.help133 small{font-size:9px} #hudBottom .pu .cost i{font-size:9px}
+
+/* VC135: prioritize rescue controls, preserve existing HUD footprint */
+#hudBottom{grid-template-columns:repeat(4,minmax(0,1.25fr)) repeat(3,minmax(0,.72fr)) minmax(46px,1fr);gap:2px;padding:0 3px}.help133{height:55px;font-size:27px;line-height:30px;background:linear-gradient(160deg,#f5c777,#a76b35 65%,#754322);box-shadow:0 2px 4px #48280c55}.help133 small{font-size:10px}#hudBottom .pu{max-width:36px;height:34px}#toast{bottom:auto;top:12%;max-width:90%;width:max-content;padding:7px 13px;font-size:14px;color:#573315;background:linear-gradient(#fff9dc,#f4d28d);border:1px solid #e6b35e;box-shadow:0 3px 10px #57331533;pointer-events:none}
+
+#actionToggle136{position:absolute;top:64px;right:8px;pointer-events:auto;z-index:12;background:#fff0c7;color:#593618;border:1px solid #c48b36;border-radius:12px;padding:6px 10px;font-weight:bold}#actionPanel136{position:absolute;top:100px;right:8px;z-index:13;display:grid;grid-template-columns:repeat(2,1fr);gap:5px;background:#fff0dc;padding:8px;border-radius:12px;pointer-events:auto}#actionPanel136.hidden{display:none}#actionPanel136 button{pointer-events:auto;background:#fff;border:1px solid #c48b36;border-radius:8px;padding:8px;color:#593618}
+
+#actionPanel136{top:100px;right:8px;max-width:220px;box-shadow:0 5px 18px #0005}#actionPanel136 button{min-height:36px}#actionToggle136{font-size:12px;padding:5px 8px} .help133:active{transform:scale(.93)}
+/* VC138: visual-only booster feedback; preserve layout and hit targets. */
+.help133{border-color:#ffe9ae;background:linear-gradient(155deg,#f7d58c 0%,#bb7838 48%,#79451f 100%);box-shadow:inset 0 1px 0 #fff7ce99,0 2px 4px #48280c55;text-shadow:0 1px 2px #43270e}
+.help133:focus-visible{outline:2px solid #fff3b2;outline-offset:-3px}
+
+#cutWeb147{position:absolute;top:65px;left:8px;z-index:12;pointer-events:auto;background:#fff5dc;border:2px solid #9d612c;border-radius:12px;color:#55371c;padding:6px 10px;font-weight:bold;box-shadow:0 2px 5px #0003}#cutWeb147.hidden{display:none}
+
+/* VC149 manual defense dock, above legacy helpers. */
+#def149_bar{position:absolute;bottom:calc(max(env(safe-area-inset-bottom),5px) + clamp(56px,17vw,77px));left:5px;right:5px;display:grid;grid-template-columns:repeat(5,minmax(0,1fr)) minmax(36px,.75fr);gap:3px;padding:3px;border-radius:12px;background:#59381ed9;pointer-events:auto;z-index:10;direction:rtl;}
+.def149,#def149_shop{position:relative;min-width:0;min-height:40px;border:1px solid #ffe1a0;border-radius:9px;background:linear-gradient(#ffe6aa,#c7914f);color:#54300e;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;padding:3px;font-weight:bold;font-size:10px;line-height:1.1;}
+.def149 svg{width:23px;height:23px;color:#57360f}.def149 b{position:absolute;top:1px;right:1px;min-width:14px;height:14px;background:#633611;color:#fff8d6;border-radius:9px;display:grid;place-items:center;font-size:10px}.def149:not(.ready149){opacity:.72}.def149.ready149{background:linear-gradient(#edffb5,#85c94f);border-color:#fffeb9;box-shadow:0 0 9px #e7ff74;opacity:1}.def149.empty149 b{background:#8c2424}.def149:active,#def149_shop:active{transform:scale(.95)}
+#def149_panel{position:absolute;bottom:calc(max(env(safe-area-inset-bottom),5px) + clamp(56px,17vw,77px) + 54px);left:8px;right:8px;max-width:300px;margin:auto;background:#fff2d5;color:#583515;border:2px solid #b7823f;border-radius:14px;padding:8px;display:grid;grid-template-columns:1fr 1fr;gap:5px;pointer-events:auto;z-index:15;box-shadow:0 4px 14px #0005;}
+#def149_panel.hidden{display:none}#def149_wallet,#def149_close{grid-column:1/-1;text-align:center;font-weight:bold}#def149_panel button{background:#fff8e6;color:#593618;border:1px solid #b7823f;border-radius:8px;padding:8px;font-size:12px;min-height:36px}
+
+/* VC150: dimensional hand-painted-style defense props, readable stock counters. */
+#def149_bar{background:linear-gradient(180deg,#a87340,#68401f);border:1px solid #e7b979;box-shadow:inset 0 1px 1px #ffdc9d88,0 2px 5px #28170880;padding:3px;gap:3px;}
+.def149{background:linear-gradient(150deg,#fff0bd,#e1b374 58%,#b47a40);box-shadow:inset 0 1px 0 #fff9dd,inset 0 -2px 1px #79502270,0 1px 2px #492a16;min-height:44px;padding:2px 1px;}
+.def149 .def150_art{width:clamp(24px,8vw,35px);height:clamp(24px,8vw,35px);object-fit:contain;filter:drop-shadow(0 2px 1px #4b291855);pointer-events:none;}
+.def149:not(.ready149){opacity:.92}.def149.ready149{background:linear-gradient(145deg,#ffffc7,#abd968 60%,#61993a);box-shadow:inset 0 1px 1px #fff,0 0 7px #d8ff84;}
+.def149 b{box-shadow:0 1px 2px #472c20;border:1px solid #ffe7ae;min-width:15px;height:15px;z-index:1;}.def149.empty149 .def150_art{opacity:.45;filter:grayscale(.55);}
+#def149_panel{bottom:calc(max(env(safe-area-inset-bottom),5px) + clamp(56px,17vw,77px) + 60px);}
+
+/* VC153: two clean compact docks; basket clearance measured in game geometry. */
+#hudTop{grid-template-columns:36px minmax(0,1fr) minmax(0,1.1fr) minmax(0,1fr);gap:5px;left:7px;right:7px;top:6px}
+#hudTop .ib{width:36px;height:36px}#hudTop .pill{height:34px;gap:4px;font-size:clamp(11px,3.5vw,15px);padding:3px;white-space:nowrap}#hudTop .pill img{width:18px;height:18px}
+#hudTop #counter{position:relative;right:auto;bottom:auto;width:100%;min-width:0;max-width:none;height:34px;flex-wrap:nowrap;gap:3px;padding:3px;border-radius:12px;font-size:clamp(11px,3.5vw,16px);direction:rtl}
+#hudTop #counter img{width:17px;height:17px}#hudTop .counterLabel{width:auto;font-size:9px;white-space:nowrap}
+#actionToggle136{top:44px;right:7px;padding:3px 7px;font-size:10px}#actionPanel136{top:70px}#hint{top:44px;left:6px;right:94px;font-size:11px;padding:3px 5px}
+#hudBottom{bottom:4px;left:6px;right:6px;height:40px;display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:3px;padding:2px;background:linear-gradient(#87552d,#593719);border:1px solid #d5a06a;border-radius:10px;pointer-events:auto;align-items:center;justify-items:stretch}
+#hudBottom .help133,#hudBottom .pu{height:34px;width:100%;max-width:none;margin:0;min-width:0;border:1px solid #f0c88b;border-radius:7px;background:linear-gradient(#f2d6a3,#bd884e);color:#673d20;box-shadow:none;text-shadow:none;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:19px;line-height:18px;padding:0}
+#hudBottom .help133 small{font-size:8px;color:#573719;line-height:10px}#hudBottom .pu>img{width:19px;height:19px;object-fit:contain}#hudBottom .pu .cost{position:static;transform:none;background:none;padding:0;gap:0;line-height:10px;color:#573719}#hudBottom .pu .cost img{display:none}#hudBottom .pu .cost i{font-size:8px}
+#def149_bar{bottom:47px;left:6px;right:6px;height:42px;grid-template-columns:repeat(5,minmax(0,1fr)) minmax(0,.8fr);gap:3px;padding:2px;border-radius:10px}
+#def149_bar .def149,#def149_shop{min-height:0;height:36px;padding:1px;font-size:9px;gap:0;border-radius:7px}#def149_bar .def150_art{width:24px;height:24px}#def149_bar b{font-size:9px;width:14px;height:14px;min-width:14px}#def149_panel{bottom:94px}
+@media(max-width:340px){#hudTop{grid-template-columns:32px minmax(0,1fr) minmax(0,1fr) minmax(0,1.1fr);gap:3px}#hudTop .ib{width:32px;height:32px}#hudTop #counter img{display:none}#def149_bar .def150_art{width:22px;height:22px}}
+
+/* VC154: use the two earth banks, not a full-width footer. Original palette/art. */
+#hudBottom,#def149_bar{position:absolute;top:auto;bottom:8px;width:27%;max-width:146px;height:auto;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-auto-rows:var(--rail-cell,44px);gap:4px;padding:3px;align-items:stretch;align-content:end;justify-items:stretch;direction:ltr;background:transparent;border:0;box-shadow:none;pointer-events:none}
+#hudBottom{left:auto;right:7px}#def149_bar{left:7px;right:auto}
+#hudBottom .help133,#hudBottom .pu,#def149_bar .def149,#def149_shop{height:100%;width:100%;min-height:0;max-width:none;min-width:0;pointer-events:auto;overflow:hidden;border-radius:9px;box-shadow:0 2px 2px #59371c77,inset 0 1px 0 #fff5d3}
+#hudBottom .help133{font-size:clamp(17px,5vw,24px);line-height:1.05}#hudBottom .help133 small,#hudBottom .pu .cost i{font-size:9px;line-height:1.1}#hudBottom .pu>img,#def149_bar .def150_art{width:clamp(18px,6vw,29px);height:min(56%,29px);object-fit:contain}
+#def149_bar .def149 span{font-size:clamp(8px,2.4vw,11px);line-height:1.1}#def149_bar b{width:15px;height:15px;min-width:15px;font-size:9px}#def149_shop{font-size:11px}#def149_panel{bottom:10px;left:7px;right:7px;max-width:300px}
+#def149_bar.hidden,#def149_bar .hidden,#def149_panel .hidden{display:none!important}
+
+/* VC155: compact golden controls and offline modes */
+#challenge155{position:absolute;top:46px;left:8px;right:8px;display:flex;justify-content:center;gap:9px;align-items:center;pointer-events:none;color:#64380e;font-weight:bold;font-size:12px}#challenge155 span,#challenge155 b{background:linear-gradient(#fff0bf,#f2b953);border:1px solid #fff0c2;border-radius:12px;padding:4px 8px}#challenge155 span:empty,#challenge155 b:empty,#challenge155.hidden{display:none}#hint{top:76px;right:6px}
+.modes155{position:absolute;top:19%;left:10%;right:10%;display:grid;gap:13px;text-align:center}.modes155 p{color:#603719;background:#fff1ce;border-radius:12px;padding:8px}
+#hudBottom,#def149_bar{width:24%;max-width:116px;gap:5px;padding:2px}#hudBottom .help133,#hudBottom .pu,#def149_bar .def149,#def149_shop{background:linear-gradient(#fff5c6,#ffc96a 65%,#e8a43c);border:1.5px solid #fff4cb;box-shadow:0 2px 2px #99601d77,inset 0 1px 1px #fff9de}#hudBottom .help133 small,#hudBottom .pu .cost{display:none}#hudBottom .pu>img,#def149_bar .def150_art{width:clamp(19px,6vw,30px);height:clamp(19px,6vw,30px)}#def149_bar .def149 span{display:none}#def149_bar .def149.ready149{background:linear-gradient(#ffffbe,#9bd865);box-shadow:0 0 8px #f0ff8d}#def149_bar b{right:0;top:0}#def149_shop{font-size:10px}
+
+#hudBottom.split155{left:7px;right:7px;width:auto;max-width:none;grid-template-columns:repeat(2,minmax(0,1fr)) minmax(0,4.7fr) repeat(2,minmax(0,1fr));grid-template-rows:repeat(2,var(--rail-cell,40px));grid-auto-rows:var(--rail-cell,40px)}#hudBottom.split155 #pu_hand{grid-column:1;grid-row:1}#hudBottom.split155 #pu_freeze{grid-column:2;grid-row:1}#hudBottom.split155 #pu_blast{grid-column:1;grid-row:2}#hudBottom.split155 #pu_swap{grid-column:4;grid-row:1}#hudBottom.split155 #puTrash{grid-column:5;grid-row:1}#hudBottom.split155 #puPlus{grid-column:4;grid-row:2}#hudBottom.split155 #puShuffle{grid-column:5;grid-row:2}
+
+/* VC156 approved golden mockup skin. Classic helpers split symmetrically; defenses only for relevant stages. */
+#hudTop .pill,#hudTop #counter{background:linear-gradient(#fff5b9 0%,#ffdc72 25%,#f1a532 77%,#cf7919 100%);border:2px solid #ffedab;border-radius:20px;box-shadow:0 3px 0 #a85d18,inset 0 0 0 2px #ffbd39,inset 0 3px 2px #fff8d4;color:#71310b;font-weight:900;text-shadow:0 1px #fff2ab}
+#hudBottom,#def149_bar{width:23%;max-width:122px;gap:5px;padding:0}
+#hudBottom .help133,#hudBottom .pu,#def149_bar .def149,#def149_shop{border:2px solid #fff2b1;border-radius:13px;background:linear-gradient(#fff4bc,#ffd368 44%,#eea12e 86%,#d88314);box-shadow:0 3px 0 #aa601d,0 5px 7px #60391238,inset 0 0 0 2px #ffc449,inset 0 3px 2px #ffffdc;color:#733b10;text-shadow:0 1px #fff4ba;overflow:visible}
+#hudBottom .help133{font-size:clamp(17px,6vw,28px)}#hudBottom .pu>img,#def149_bar .def150_art{width:70%;height:70%;max-width:32px;max-height:32px;filter:drop-shadow(0 2px 1px #78441555)}
+#def149_bar b{background:#a122cf;color:white;border:1.5px solid #fff2c6;box-shadow:0 1px 2px #662278;font-weight:900;top:-2px;right:-2px}
+#hudBottom.split155{left:7px;right:7px;grid-template-columns:repeat(2,minmax(0,1fr)) minmax(0,5.6fr) repeat(2,minmax(0,1fr));grid-template-rows:repeat(2,var(--rail-cell,40px));width:auto;max-width:none}
+#hudBottom.split155 #pu_hand{grid-column:1;grid-row:1}#hudBottom.split155 #pu_freeze{grid-column:2;grid-row:1}#hudBottom.split155 #pu_blast{grid-column:1;grid-row:2}#hudBottom.split155 #pu_swap{grid-column:4;grid-row:1}#hudBottom.split155 #puTrash{grid-column:5;grid-row:1}#hudBottom.split155 #puPlus{grid-column:4;grid-row:2}#hudBottom.split155 #puShuffle{grid-column:5;grid-row:2}
+
+/* VC157: larger touch targets, without changing the board or HUD design. */
+#hudBottom,#def149_bar{width:23.5%;max-width:138px;gap:4px;}
+#hudBottom{right:4px}#def149_bar{left:4px}
+#hudBottom.split155{left:4px;right:4px;grid-template-columns:repeat(2,minmax(0,1fr)) minmax(0,4.6fr) repeat(2,minmax(0,1fr));gap:4px;}
+#hudBottom .help133{font-size:clamp(22px,7vw,34px)}
+#hudBottom .pu>img,#def149_bar .def150_art{width:76%;height:76%;max-width:38px;max-height:38px;}
+
+/* VC158: a single calm compact HUD, readable Arabic labels and larger touch targets. */
+#hudTop{top:max(env(safe-area-inset-top),6px);left:8px;right:8px;grid-template-columns:34px minmax(0,.8fr) minmax(0,1.15fr) minmax(0,1.15fr);gap:5px;align-items:center}
+#hudTop .ib{width:34px;height:34px;align-self:center}
+#hudTop .pill,#hudTop #counter{height:32px;min-width:0;border-radius:11px;gap:4px;padding:3px 5px;background:linear-gradient(180deg,#fff2c5,#f5d18b 46%,#dda254);border:1px solid #fff2cf;color:#65411c;box-shadow:0 2px 0 #af7637,inset 0 1px 1px #fff9e5,0 2px 5px #40250833;text-shadow:none;font-size:clamp(11px,3.3vw,15px);font-weight:750;justify-content:center;white-space:nowrap}
+#hudTop #pillLevel span,#hudTop .counterLabel{font-size:clamp(9px,2.6vw,12px);font-weight:650;line-height:1.15}
+#hudTop .pill img,#hudTop #counter img{height:17px;width:17px;flex:none;display:block}
+#hudTop b{font-variant-numeric:tabular-nums;min-width:0;line-height:1.1}
+#hudBottom,#def149_bar{gap:4px;width:24.5%;max-width:146px}
+#hudBottom.split155{width:auto;grid-template-columns:repeat(2,minmax(0,1fr)) minmax(0,4.1fr) repeat(2,minmax(0,1fr))}
+#hudBottom .help133,#hudBottom .pu,#def149_bar .def149,#def149_shop{border-radius:11px}
+@media(max-width:340px){#hudTop{left:4px;right:4px;gap:3px;grid-template-columns:30px minmax(0,.8fr) minmax(0,1.15fr) minmax(0,1.2fr)}#hudTop .ib{width:30px;height:30px}#hudTop .pill,#hudTop #counter{gap:2px;padding:2px}#hudTop #counter img{width:13px;height:13px}}
+
+/* VC160: quiet golden controls, compact balanced top, no new controls. */
+#hudTop{top:max(env(safe-area-inset-top),5px);gap:4px;left:6px;right:6px} #hudTop .pill,#hudTop #counter{border-radius:13px;background:linear-gradient(#fff4cc,#f4cd84 60%,#e0aa60);box-shadow:0 2px 0 #bc8043,inset 0 1px 1px #fff8df;}
+#hudBottom .help133,#hudBottom .pu,#def149_bar .def149,#def149_shop{border-radius:12px;background:linear-gradient(#fff6cb,#f3cd87 60%,#e1a956);box-shadow:0 2px 0 #b47b38,inset 0 1px 0 #fff8d5;} #hudBottom .help133{font-size:clamp(23px,6.5vw,32px)}
+
+/* VC161: move original tools below the basket. Keep their existing artwork and palette. */
+#hudBottom,#hudBottom.split155,#def149_bar{left:7px;right:7px;width:auto;max-width:none;height:auto;grid-template-rows:none;grid-auto-rows:var(--rail-cell,42px);gap:3px;padding:0;align-content:end;justify-items:stretch;direction:ltr}
+#hudBottom,#hudBottom.split155{grid-template-columns:repeat(7,minmax(0,1fr));}
+#hudBottom.split155 > *,#hudBottom > *{grid-column:auto!important;grid-row:auto!important;position:relative;left:auto;right:auto;bottom:auto;top:auto;}
+#def149_bar{grid-template-columns:repeat(6,minmax(0,1fr));display:flex;justify-content:center;align-items:center;}
+#def149_bar .def149,#def149_shop{position:relative;width:var(--rail-cell,42px);height:var(--rail-cell,42px);flex:0 0 var(--rail-cell,42px);}
+#hudBottom .help133,#hudBottom .pu{height:var(--rail-cell,42px);min-height:0;max-width:none;}
+#def149_panel{bottom:calc(2 * var(--rail-cell,50px) + 24px);}
+
+/* VC163: coherent compact golden tools, same row positions and touch targets. */
+#hudBottom .help133,#hudBottom .pu,#def149_bar .def149,#def149_shop{display:flex;align-items:center;justify-content:center;box-sizing:border-box;border:1.5px solid #fff4d0;border-radius:10px;background:linear-gradient(180deg,#fff1c5 0%,#f8d38a 48%,#e5ad53 100%);box-shadow:0 2px 0 #a96a2f,inset 0 1px 1px #fffce9,0 3px 4px #8a561b24;padding:3px;}
+#hudBottom .tool163,#hudBottom .pu>img,#def149_bar .def150_art{display:block;width:82%;height:82%;max-width:38px;max-height:38px;object-fit:contain;filter:drop-shadow(0 1px 1px #8b521a44);pointer-events:none}
+#def149_bar .def149.ready149{background:linear-gradient(#fff4b8,#c5e49c);box-shadow:0 2px 0 #8ca653,0 0 7px #e6ff9c;}
+#def149_bar b{border-color:#fff7dd;background:#8e36b8;min-width:15px;height:15px;font-size:10px;}
+#def149_shop{font-size:clamp(10px,2.9vw,13px);font-weight:750}
+#def149_bar .def149.hidden{display:none!important}
+
+/* VC164: lower-screen layout polish. Same buttons, IDs, order and behaviour. */
+#hudBottom,#hudBottom.split155{gap:4px}
+#def149_bar{gap:6px}
+#hint{left:14px;right:14px;top:auto;bottom:calc(max(env(safe-area-inset-bottom),5px) + 118px);padding:3px 10px;font-size:12px;line-height:1.2;border-width:1.5px;border-radius:12px;background:rgba(98,56,20,.8);border-color:#ffd98a;color:#fff7de;pointer-events:none;z-index:11;max-width:420px;margin:0 auto}

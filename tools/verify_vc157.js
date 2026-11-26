@@ -1,0 +1,6 @@
+const fs=require('fs'),path=require('path');let h=fs.readFileSync(path.join(__dirname,'verify_engine_node.js'),'utf8').split('let solver=')[0];
+eval(h+`
+const z=C.ZF,M=C.Matter,assert=(v,m)=>{if(!v)throw Error(m)};
+function timeToFloor(gravity,x){z.start(1,'classic');const g=z.G;g.scroll=null;g.engine.gravity.scale=gravity;let e=g.hang.find(e=>!e.bomb&&!e.caged&&z.isVisible(e));for(const other of g.hang.slice())if(other!==e&&other.hb)M.Composite.remove(g.engine.world,other.hb);g.hang=[e];g.order=[e];for(const o of g.obst)M.Composite.remove(g.engine.world,o.body);g.obst=[];e.x=x;e.y=g.topY+g.r*2;M.Body.setPosition(e.hb,{x:e.x,y:e.y});assert(z.release(e),'release');for(let i=1;i<600;i++){z.advance(1/60);let p=e.body.position;assert(g.state==='play','unexpected loss');assert(p.y<=g.floorY+1,'below collector');if(p.y>=g.floorY-g.r*1.1-2){assert(p.x>g.chL&&p.x<g.chR,'outside channel');return i/60;}}throw Error('did not reach collector '+x);}
+const before=timeToFloor(.00265,360),after=timeToFloor(.004140625,360);assert(after<before*.88,'not faster');console.log('Center fall old/new seconds:',before,after,'speed ratio',before/after);for(let x of [70,140,230,300,420,490,580,650])console.log('side release',x,timeToFloor(.004140625,x));
+`);

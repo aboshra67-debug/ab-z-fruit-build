@@ -1,0 +1,11 @@
+{"n":1,"r":38,"cap":4,"total":24,"obst":0,"state":"won","deadlock":false,"bird":0,"rem":0,"time":30,"hang":0,"dyn":0,"steps":66,"maxStack":3}
+{"n":5,"r":39,"cap":4,"total":42,"obst":0,"state":"won","deadlock":false,"bird":0,"rem":0,"time":51,"hang":0,"dyn":0,"steps":114,"maxStack":4}
+{"n":10,"r":33,"cap":4,"total":68,"obst":1,"state":"won","deadlock":false,"bird":0,"rem":0,"time":86,"hang":0,"dyn":0,"steps":192,"maxStack":4}
+{"n":12,"r":33,"cap":4,"total":78,"obst":2,"state":"won","deadlock":false,"bird":1,"rem":0,"time":102,"hang":0,"dyn":0,"steps":228,"maxStack":4}
+{"n":13,"r":33,"cap":4,"total":82,"obst":2,"state":"won","deadlock":false,"bird":1,"rem":0,"time":107,"hang":0,"dyn":0,"steps":239,"maxStack":4}
+{"n":14,"r":33,"cap":4,"total":86,"obst":2,"state":"won","deadlock":false,"bird":1,"rem":0,"time":112,"hang":0,"dyn":0,"steps":249,"maxStack":4}
+{"n":15,"r":33,"cap":4,"total":90,"obst":2,"state":"won","deadlock":false,"bird":1,"rem":0,"time":115,"hang":0,"dyn":0,"steps":255,"maxStack":4}
+{"n":25,"r":33,"cap":4,"total":132,"obst":2,"state":"won","deadlock":false,"bird":1,"rem":0,"time":173,"hang":0,"dyn":0,"steps":384,"maxStack":4}
+{"n":80,"r":28,"cap":4,"total":290,"obst":2,"state":"won","deadlock":false,"bird":2,"rem":0,"time":354,"hang":0,"dyn":0,"steps":788,"maxStack":4}
+{"n":117,"r":28,"cap":4,"total":392,"obst":2,"state":"won","deadlock":false,"bird":3,"rem":0,"time":485,"hang":0,"dyn":0,"steps":1078,"maxStack":4}
+{"n":300,"r":28,"cap":4,"total":500,"obst":2,"state":"won","deadlock":false,"bird":4,"rem":0,"time":629,"hang":0,"dyn":0,"steps":1398,"maxStack":4}

@@ -1,0 +1,8 @@
+# AB Z Fruit V1.1.1 / VC111
+Safe patch from VC110. Same package, save key, 300 levels, 50 fruit variants, base 4-slot channel, power-ups, hazards and native Android code.
+
+- Lighten scenery and HUD without changing fruit art; retain the five worlds.
+- Ordinary pair matching requires both dynamic fruit centers inside the channel; intentional trash power-up is unchanged.
+- Counts at levels 1/5/10/20/25/50/80/120+: 24/40/60/100/120/170/210/240. From 40 fruit, a real offscreen reserve scrolls down as bottom rows clear. Hidden fruit cannot be released or targeted by hazards; hidden bombs do not count down. Both hidden and visible fruit are included in remaining count. Obstacles have safe spacing and a lower strip. Static fruit and sprites move together; no field advancement while dynamic fruit is outside the channel.
+- Verification: 300 level initializations at 412x915 verified exact counts, paired types and at least one visible fruit; targeted checks at 412x915 and 400x680 verified reserve movement, hidden input rejection, and rejection of above-channel pair matching plus successful inside-channel matching. Ordered real Matter.js solver won representative levels including 80,120,300 at 412x915 and 50,120,300 at 400x680. Solver defuses visible bombs and scares birds; no claim that every play path or device is tested.
+- APK: asset-only repack with unchanged native binaries, updated manifest VC111 / 1.1.1, v2 signature verified against VC110 certificate. Not a new Gradle build, no Android device or visual rendering test. Existing shared test signing key is for testing, not production. No private key backup/password included. Do not switch signing keys when updating installed test APKs.

@@ -1,0 +1,18 @@
+{"n":117,"r":28,"cap":4,"total":392,"obst":2,"state":"won","deadlock":false,"bird":2,"rem":0,"time":638,"hang":0,"dyn":0,"steps":1418,"maxStack":4} hang [] dyn [] near [] obst [
+  [
+    'rock',
+    117.51554971672596,
+    619.7958577854866,
+    -0.08492828775197267,
+    undefined
+  ]
+] mouth 833.304
+{"n":300,"r":28,"cap":4,"total":500,"obst":2,"state":"won","deadlock":false,"bird":4,"rem":0,"time":818,"hang":0,"dyn":0,"steps":1819,"maxStack":4} hang [] dyn [] near [] obst [
+  [
+    'rock',
+    597.7460884381086,
+    621.602987448578,
+    -0.10888165086507796,
+    undefined
+  ]
+] mouth 833.304
