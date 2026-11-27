@@ -6,7 +6,7 @@ for(const n of [1,17,21,50,100,150,200,250,300]){
  let helperTop=vh-8-size,defTop=helperTop-8-size,footerTop=any?defTop:helperTop;
  assert(g.dockY*scale+off<=footerTop,'dock overlaps tools '+n);
  assert(g.floorY-g.mouthY>(g.cfg.cap*2-1)*r*1.1,'channel capacity '+n);
- assert(g.floorY+r*2*.98*3+r*1.9<g.dockY,'extension clearance '+n);
+ assert(((function(){const w=Math.min(720*.43,g.cw*1.9),h=w*.618;return g.floorY-g.r*1.0-h*.43+h*1.065;})())+r*2*.98*3<g.dockY,'extension clearance '+n);
  assert(nodes.def149_bar.classList.contains('hidden')===!any,'defense visibility '+n);
  assert(nodes.hudBottom.style.bottom==='8px','helper bottom '+n);
  assert(nodes.def149_bar.style.bottom===(8+size+8)+'px','defense bottom '+n);

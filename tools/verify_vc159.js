@@ -11,7 +11,7 @@ for(let n of [1,17,50,150,300]){
  for(let e of g.hang.slice())if(!selected.includes(e)&&e.hb)M.Composite.remove(g.engine.world,e.hb);g.hang=selected.slice();
  for(let o of g.obst)M.Composite.remove(g.engine.world,o.body);g.obst=[];
  selected.forEach((e,i)=>{assert(z.release(e),'release '+n);M.Body.setPosition(e.body,{x:360,y:g.floorY-r*1.1-i*r*2.2});M.Body.setVelocity(e.body,{x:0,y:0});});
- for(let i=0;i<80;i++)z.advance(1/60);assert(g.state==='play'&&g.stackNow===g.cfg.cap,'full channel count '+n+' '+g.stackNow);console.log(n,'capacity',g.stackNow,'PASS');
+ for(let i=0;i<20;i++)z.advance(1/60);assert(g.state==='play'&&g.stackNow===g.cfg.cap,'full channel count '+n+' '+g.stackNow);console.log(n,'capacity',g.stackNow,'PASS');for(let i=0;i<120;i++)z.advance(1/60);assert(g.state==='lost','VC165: settled full channel loses '+n+' '+g.state);
 }
 console.log('300 levels: initial clearances, collector capacity PASS');
 `);

@@ -3,7 +3,7 @@ const z=C.ZF,assert=(v,m)=>{if(!v)throw Error(m)};
 let maxImbalance=0,minVisible=Infinity;
 for(let n=1;n<=300;n++){
  z.start(n);let g=z.G,r=g.r, visible=g.hang.filter(e=>z.isVisible(e));
- assert(g.floorY+r*2*.98*3+r*1.8<g.dockY,'basket overlaps dock '+n);
+ assert(((function(){const w=Math.min(720*.43,g.cw*1.9),h=w*.618;return g.floorY-g.r*1.0-h*.43+h*1.065;})())+r*2*.98*3<g.dockY,'basket overlaps dock '+n);
  assert(g.mouthY>g.topY+r*4,'play area '+n);
  assert(visible.length>=8,'too few visible '+n);minVisible=Math.min(minVisible,visible.length);
  const left=visible.filter(e=>e.x<360).length,right=visible.filter(e=>e.x>360).length;

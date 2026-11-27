@@ -7,7 +7,7 @@ for(let n=1;n<=300;n++){
  z.start(n);const g=z.G, wanted=g.cfg.defense152;
  for(const k of keys){assert(nodes['def149_'+k].classList.contains('hidden')===!wanted.includes(k),'defense visibility '+n+' '+k);assert(nodes['buy149_'+k].classList.contains('hidden')===!wanted.includes(k),'shop visibility '+n+' '+k);}
  assert(nodes.def149_bar.classList.contains('hidden')===!wanted.length,'rail visibility '+n);
- assert(g.floorY+g.r*2*.98*3+g.r*1.9<g.dockY,'basket clearance '+n);
+ assert(((function(){const w=Math.min(720*.43,g.cw*1.9),h=w*.618;return g.floorY-g.r*1.0-h*.43+h*1.065;})())+g.r*2*.98*3<g.dockY,'basket clearance '+n);
  const w=Math.min(720*.36,g.cw*2.42);assert(360-w/2>720*.27&&360+w/2<720*.73,'basket side clearance '+n);
 }
 console.log('300 stages: defense rail + shop visibility, basket extension and horizontal side clearance PASS');

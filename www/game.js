@@ -136,7 +136,7 @@
 
   function newEngine() {
     var e = Engine.create({ positionIterations: 14, velocityIterations: 10 });
-    e.gravity.y = 1; e.gravity.scale = 0.004140625;
+    e.gravity.y = 1; e.gravity.scale = 0.001458; // VC165: measured from the original game's drops (was 0.004140625)
     return e;
   }
 
@@ -496,7 +496,7 @@
     var cw = Math.round(r * DRAW_K * 1.2);                 // like the original: channel is ~1.2x the fruit diameter
     var cap = cfg.cap;
     // VC153: reserve basket plus all three existing channel extensions above the controls.
-    var dockY=H-bottomBar, basketRoom=r*2.15, extensionRoom=r*2*.98*3;
+    var dockY=H-bottomBar, basketRoom=r*1.25, extensionRoom=r*2*.98*3;
     var floorBase = dockY - basketRoom - extensionRoom;
     var depth = cap * br * 2 * 0.99 - r * 0.30; // VC159: compact, still fits cap complete fruit centers
     var mouthY = floorBase - depth;
@@ -553,7 +553,7 @@
     if(clash){if(e.pendingDrop)return true;if(G.hang.filter(function(f){return f.pendingDrop;}).length>=3)return false;e.pendingDrop=true;e.wob=.25;return true;}
     e.pendingDrop=false;hbOff(e);
     e.state = 'fall'; e.mystery = false;
-    var b = Bodies.circle(e.x, e.y, G.r * BODY_K, { restitution: .115, friction: .14, frictionStatic: .022, frictionAir: .008, density: .0016, collisionFilter:{category:NORMAL_CATEGORY,mask:0xffffffff}, label: 'fruit' });
+    var b = Bodies.circle(e.x, e.y, G.r * BODY_K, { restitution: .05, friction: .14, frictionStatic: .022, frictionAir: .008, density: .0016, collisionFilter:{category:NORMAL_CATEGORY,mask:0xffffffff}, label: 'fruit' });
     // Start from rest at the exact selected position; gravity alone releases it.
     b.ent = e; e.body = b; e.idle = 0; Composite.add(G.engine.world, b);
     G.hang.splice(G.hang.indexOf(e), 1); G.dyn.push(e);
@@ -1047,12 +1047,10 @@
     }
     G.maxStack=Math.max(G.maxStack,stack);G.stackNow=inside.length;
     var full=inside.length>=G.cfg.cap;
-    var overflow=full && above.some(function(e){return inside.indexOf(e)<0;});
-    if(!full || G.chain>0){G.fullT=0;G.overflowSeen=false;}
-    else if(overflow || (G.overflowSeen && G.dyn.length>G.cfg.cap)){
-      G.overflowSeen=true;G.fullT+=dt;
-      if(G.fullT>=3.0){G.fullT=0;G.overflowSeen=false;if(!G.rescue134){G.rescue134=true;G.freezeUntil=G.time+5;toast("فرصة إنقاذ! استخدم اليد أو القنبلة");}else return endLevel(false);}
-    }else{G.fullT=0;}
+    // VC165: like the original, a full channel that settles without a match loses the level at once.
+    var calm=inside.every(function(e){return e.body.speed<.6;});
+    if(!full || G.chain>0 || G.collecting&&G.collecting.length || !calm){G.fullT=0;G.overflowSeen=false;}
+    else{G.overflowSeen=true;G.fullT+=dt;if(G.fullT>=.5){G.fullT=0;G.overflowSeen=false;return endLevel(false);}}
 
     // deadlock: nothing left to drop and the channel cannot clear itself
     var freeLeft = G.hang.some(function (e) { return !e.bomb && !e.caged && !e.stung; });
@@ -1318,8 +1316,9 @@
   function drawMonkey134(t){ctx.save();ctx.scale(1.35,1.35);var swing=Math.sin(t*12);ctx.strokeStyle='#754226';ctx.lineWidth=9;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(-15,23);ctx.bezierCurveTo(-55,45,-60,-12,-40,-17);ctx.stroke();for(var d of [-1,1]){ctx.save();ctx.translate(d*13,29);ctx.rotate(d*swing*.5);gloss135(0,9,9,17,'#b67b49','#63351f');gloss135(4,22,12,7,'#e7b27d','#996039');ctx.restore();}gloss135(0,17,25,29,'#b77c4d','#63351f');gloss135(3,19,15,19,'#f5cf9c','#b87c49');for(var d of [-1,1]){gloss135(d*27,-15,14,16,'#b97c4d','#704026');gloss135(d*28,-15,8,10,'#f2b98b','#a96843');}gloss135(0,-16,30,29,'#c58b54','#6b3c24');gloss135(0,-9,23,21,'#ffe0b0','#c48a58');for(var d of [-1,1]){oval134(d*10,-18,7,9,'#fff8e8');oval134(d*10+2,-17,4,6,'#32231b');oval134(d*10+3,-20,1.5,2,'#fff');}oval134(2,-5,5,3,'#8e563b');ctx.strokeStyle='#854c32';ctx.lineWidth=2;ctx.beginPath();ctx.arc(2,0,10,.15,Math.PI-.15);ctx.stroke();ctx.save();ctx.translate(17,8);ctx.rotate(t<1.5?-.35+swing*.45:-.6);gloss135(15,5,20,8,'#c58b54','#704026');gloss135(32,5,9,8,'#f4c48d','#b47a4d');ctx.restore();ctx.restore();}
   // VC156: approved basket artwork. Real collector floor remains aligned to its mouth.
   function basketGeometry158(g){
-    var r=g.r,y=g.floorY-r*2.75,room=g.dockY-y-10,w=Math.min(W*.47,room/.618),h=w*.618;
-    return {w:w,h:h,y:y};
+    // VC165: small basket just under the channel end (about 1.9x the channel width) like the original.
+    var r=g.r,w=Math.min(W*.43,g.cw*1.9),h=w*.618;
+    return {w:w,h:h,y:g.floorY-r*1.0-h*.43};
   }
   function boardStretch162(g){
     if(!g||g.demo)return 1;
@@ -1349,14 +1348,11 @@
     return 1+Math.min(.13,Math.max(0,boardStretch162(g)-1)) * t;
   }
   function basketFruit160(g,e){
-    var p=e.body.position,r=g.r,b=basketGeometry158(g),depth=g.floorY-p.y;
-    if(Math.abs(p.x-W/2)>g.cw*.5||depth>r*3.65||depth<0)return null;
-    var t=clamp((r*3.65-depth)/(r*.8),0,1);t=t*t*(3-2*t);
-    var k=clamp((depth-r*BODY_K)/(2*r*BODY_K),0,1);
-    var x=W/2+r*(-.72+1.48*k),y=b.y+b.h*(.36-.09*k);
-    return {x:p.x+(x-p.x)*t,y:p.y+(y-p.y)*t,blend:t};
+    // VC165: fruit keeps its real physics position; it is only drawn between the basket's back and front rim.
+    var p=e.body.position,r=g.r,b=basketGeometry158(g);
+    if(Math.abs(p.x-W/2)>g.cw*.5+r*.2||p.y+r*1.25<b.y||p.y>g.floorY+r)return null;
+    return {x:p.x,y:p.y,blend:1};
   }
-
   // VC164: quiet sand decoration beside the channel and basket. Purely visual: no bodies, no input, no collision.
   function drawSand164(g){
     if(!g||g.demo)return;
@@ -1386,13 +1382,13 @@
     else {ctx.fillStyle='#bb8342';ctx.beginPath();ctx.moveTo(-w*.49,h*.18);ctx.lineTo(w*.49,h*.18);ctx.lineTo(w*.35,h*.89);ctx.quadraticCurveTo(0,h*1.10,-w*.35,h*.89);ctx.closePath();ctx.fill();ctx.fillStyle='#70401a';ctx.beginPath();ctx.ellipse(0,h*.18,w*.47,h*.16,0,0,Math.PI*2);ctx.fill();}
     // Draw only the actual two lowest fruits, in perspective, inside the wicker opening.
     g.dyn.slice().sort((a,b)=>a.body.position.y-b.body.position.y).forEach(function(e){var p=basketFruit160(g,e);if(!p)return;drawSpr(kindImg(e),p.x-W/2,p.y-y,r*DRAW_K,e.body.angle+(e.visualAngle||0),1);});
-    if(g.collecting)g.collecting.forEach(function(cp){var t=clamp(cp.t/cp.dur,0,1);cp.items.forEach(function(e,i){var k=clamp((t-i*.045)/.82,0,1),ease=k*k*(3-2*k),sx=e.x-W/2,sy=e.y-y,tx=(i?1:-1)*r*.73,ty=h*.34;var yy=sy+(ty-sy)*ease-Math.sin(k*Math.PI)*r*.19;drawSpr(kindImg(e),sx+(tx-sx)*ease,yy,r*DRAW_K*(1-.09*ease),e.angle+k*.22,1-clamp((t-.82)/.18,0,1));});});
+    if(g.collecting)g.collecting.forEach(function(cp){var t=clamp(cp.t/cp.dur,0,1);cp.items.forEach(function(e,i){var k=clamp((t-i*.045)/.82,0,1),ease=k*k*(3-2*k),sx=e.x-W/2,sy=e.y-y,tx=(i?1:-1)*r*.5,ty=h*.26;var yy=sy+(ty-sy)*ease-Math.sin(k*Math.PI)*r*.19;drawSpr(kindImg(e),sx+(tx-sx)*ease,yy,r*DRAW_K*(1-.09*ease),e.angle+k*.22,1-clamp((t-.82)/.18,0,1));});});
     // Foreground is the actual curved front rim: lower portions of fruit are naturally occluded.
     if(loaded){ctx.save();ctx.beginPath();ctx.moveTo(-w*.47,h*.30);ctx.bezierCurveTo(-w*.36,h*.46,w*.36,h*.46,w*.47,h*.30);ctx.lineTo(w*.53,h*1.03);ctx.lineTo(-w*.53,h*1.03);ctx.closePath();ctx.clip();ctx.drawImage(im,-w/2,0,w,h);ctx.restore();}
     // Replace the artwork's original static label completely with the live progress counter.
-    var bw=w*.40,bh=h*.20,by=h*.635;
+    var bw=w*.66,bh=h*.34,by=h*.58;
     var bg=ctx.createLinearGradient(0,by,0,by+bh);bg.addColorStop(0,'#855326');bg.addColorStop(1,'#5e3517');ctx.fillStyle=bg;ctx.beginPath();ctx.roundRect(-bw/2,by,bw,bh,bh*.46);ctx.fill();ctx.strokeStyle='#ffce76';ctx.lineWidth=Math.max(2,w*.008);ctx.stroke();
-    ctx.font='bold '+Math.max(12,Math.floor(bh*.60))+'px sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.direction='ltr';ctx.fillStyle='#fff5d5';ctx.fillText(Math.max(0,g.total-g.remaining)+' / '+g.total,0,by+bh*.52);ctx.restore();
+    var ctr=Math.max(0,g.total-g.remaining)+' / '+g.total;ctx.font='bold '+Math.max(12,Math.min(Math.floor(bh*.62),Math.floor(bw*.9/(ctr.length*.6))))+'px sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.direction='ltr';ctx.fillStyle='#fff5d5';ctx.fillText(ctr,0,by+bh*.52);ctx.restore();
   }
 
   function drawBadge(x, y, rad, num, col) {
