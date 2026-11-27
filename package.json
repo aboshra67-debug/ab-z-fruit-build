@@ -1,0 +1,10 @@
+{
+  "name": "abzfruit-challenge-server",
+  "version": "1.0.0",
+  "private": true,
+  "description": "AB Z Fruit challenge server: rooms, coin entry, ranking payout",
+  "main": "server.js",
+  "scripts": { "start": "node server.js", "test": "node test/run.js" },
+  "engines": { "node": ">=18" },
+  "dependencies": { "ws": "^8.18.0" }
+}
