@@ -508,7 +508,7 @@
     var cw = Math.round(r * DRAW_K * 1.2);                 // like the original: channel is ~1.2x the fruit diameter
     var cap = cfg.cap;
     // VC153: reserve basket plus all three existing channel extensions above the controls.
-    var dockY=H-bottomBar, basketRoom=r*1.25, extensionRoom=r*2*.98*3;
+    var bkW=Math.min(W*.43,cw*1.9), bkH=bkW*.618, dockY=H-bottomBar, basketRoom=bkH*(1.065-.19)+r*.12+2, extensionRoom=r*2*.98*3;   // VC170: room below the channel floor for the whole basket (it sits under the floor now)
     var floorBase = dockY - basketRoom - extensionRoom;
     var depth = cap * br * 2 * 0.99 - r * 0.30; // VC159: compact, still fits cap complete fruit centers
     var mouthY = floorBase - depth;
@@ -604,12 +604,12 @@
     if(G.variant155==='classic'&&(a.gold133>G.time||b.gold133>G.time)){save.coins+=5;persist();updateCoins();}
     var items=[a,b].map(function(e){var p=e.body.position;return {kind:e.kind,x:p.x,y:p.y,angle:e.body.angle};});
     [a,b].forEach(function(e){Composite.remove(G.engine.world,e.body);G.dyn.splice(G.dyn.indexOf(e),1);e.state='collected';});
-    (G.collecting||(G.collecting=[])).push({items:items,t:0,dur:.336});
+    (G.collecting||(G.collecting=[])).push({items:items,t:0,dur:.55});
   }
   function finishPair(items) {
     var a=items[0],b=items[1];
     [a, b].forEach(function (e) {
-      var x = W/2, y = G.floorY + G.r*.08;
+      var bgm=basketGeometry158(G), x = W/2, y = bgm.y + bgm.h*.30;
       addFx('premiumSplash', x, y, G.r * 3.4, .36); addFx('ring',x,y,G.r*2.8,.25); if((G.combo||0)>=2)addFx('ring', x, y, G.r * 3.6, .35); else addFx('sparkle', x, y, G.r * 2.1, .35);
       for (var i = 0; i < (G.combo>=2?24:16) && G.parts.length < 160; i++) G.parts.push({ x: x, y: y, vx: (rnd() - .5) * 420, vy: -rnd() * 380 - 40, t: 0, life: .55 + rnd() * .3, c: FR[e.kind % FR.length].c, s: G.r * (.12 + rnd() * .14) });
     });
@@ -1001,7 +1001,7 @@
     updateAction133(dt);
     refreshDefense149(false);
     if(G.freezeUntil>G.time)return;
-    G.lid166 = G.collecting && G.collecting.length ? Math.min(1, (G.lid166||0) + dt * 9) : Math.max(0, (G.lid166||0) - dt * 7);
+    G.lid166 = (G.collecting && G.collecting.some(function(cp){return cp.t>=cp.dur*.24&&cp.t<=cp.dur*.86;})) ? Math.min(1, (G.lid166||0) + dt * 9) : Math.max(0, (G.lid166||0) - dt * 8);
     if(G.collecting) for(var ci=G.collecting.length-1;ci>=0;ci--){var cp=G.collecting[ci];cp.t+=dt;if(cp.t>=cp.dur){G.collecting.splice(ci,1);finishPair(cp.items);}}
     G.comboShow=Math.max(0,(G.comboShow||0)-dt); G.basketBounce=Math.max(0,(G.basketBounce||0)-dt); G.basketGlow = Math.max(0,(G.basketGlow||0)-dt);
     // physics
@@ -1290,6 +1290,7 @@
     });
     ctx.restore();
     // dynamic fruits
+    drawSand164(G);drawBasket(G);
     ctx.save();ctx.beginPath();ctx.rect(0,G.topY,W,H-G.topY);ctx.clip();G.dyn.forEach(function (e) { var p = e.body.position, im=kindImg(e), angle=e.body.angle+(e.visualAngle||0); if(p.y-spriteHalfHeight(im,r*DRAW_K,angle)<G.topY+1||basketFruit160(G,e))return; drawSpr(im, p.x, p.y, r * DRAW_K * chuteScale163(G,p), angle, 1); });ctx.restore();
     // carried fruit
     // Held fruit is already drawn at its solid original slot.
@@ -1312,7 +1313,7 @@
     G.parts.forEach(function (p) { ctx.globalAlpha = 1 - p.t / p.life; ctx.fillStyle = p.c; ctx.beginPath(); ctx.ellipse(p.x,p.y,p.s*.75,p.s*1.35,Math.atan2(p.vy,p.vx)-Math.PI/2,0,7); ctx.fill(); }); ctx.globalAlpha = 1;
     G.fx.forEach(function (f) { var k = f.t / f.dur, im = IMG.el[f.img]; ctx.globalAlpha = 1 - k * k; var sz = f.size * (0.5 + k * .8); if (!im || !im.complete || !im.naturalWidth) return; var h = sz * im.height / im.width; ctx.drawImage(im, f.x - sz / 2, f.y - h / 2, sz, h); }); ctx.globalAlpha = 1;
     // Decorative basket below the physical channel; never changes collision capacity.
-    drawSand164(G);drawBasket(G);
+    drawBasketFront170(G);
     // overflow warning, including the last free slot
     if (G.comboShow>0 && G.state==='play') {
       ctx.save();ctx.globalAlpha=Math.min(1,G.comboShow*3);ctx.font='900 34px sans-serif';ctx.textAlign='center';ctx.lineWidth=6;ctx.strokeStyle='#94551b';ctx.fillStyle='#fff3a0';
@@ -1341,7 +1342,7 @@
   function basketGeometry158(g){
     // VC165: small basket just under the channel end (about 1.9x the channel width) like the original.
     var r=g.r,w=Math.min(W*.43,g.cw*1.9),h=w*.618;
-    return {w:w,h:h,y:g.floorY-r*1.0-h*.43};
+    return {w:w,h:h,y:g.floorY-h*.19+r*.12};   // VC170: the lid is at floor level; fruit rests on top of the basket instead of inside it
   }
   function boardStretch162(g){
     if(!g||g.demo)return 1;
@@ -1373,8 +1374,7 @@
   function basketFruit160(g,e){
     // VC165: fruit keeps its real physics position; it is only drawn between the basket's back and front rim.
     var p=e.body.position,r=g.r,b=basketGeometry158(g);
-    if(Math.abs(p.x-W/2)>g.cw*.5+r*.2||p.y+r*1.25<b.y||p.y>g.floorY+r)return null;
-    return {x:p.x,y:p.y,blend:1};
+    return null;   // VC170: fruit stays above the lid and is drawn by the normal fruit pass
   }
   // VC164: quiet sand decoration beside the channel and basket. Purely visual: no bodies, no input, no collision.
   function drawSand164(g){
@@ -1411,9 +1411,19 @@
       if(ry>ry0*.4){ctx.strokeStyle='rgba(107,61,22,.45)';ctx.lineWidth=Math.max(1.2,w*.007);for(var k=-3;k<=3;k++){ctx.beginPath();ctx.ellipse(0,cy,Math.abs(k)*rx/3.4+1,Math.max(1,ry*Math.abs(k)/3.4),0,0,Math.PI*2);if(k>0)ctx.stroke();}
         for(var m=-4;m<=4;m++){ctx.beginPath();ctx.moveTo(m*rx/4.6,cy-ry*Math.sqrt(Math.max(0,1-Math.pow(m/4.6,2))));ctx.lineTo(m*rx/4.6,cy+ry*Math.sqrt(Math.max(0,1-Math.pow(m/4.6,2))));ctx.stroke();}}
       ctx.restore();})();
-    // Draw only the actual two lowest fruits, in perspective, inside the wicker opening.
-    g.dyn.slice().sort((a,b)=>a.body.position.y-b.body.position.y).forEach(function(e){var p=basketFruit160(g,e);if(!p)return;drawSpr(kindImg(e),p.x-W/2,p.y-y,r*DRAW_K,e.body.angle+(e.visualAngle||0),1);});
-    if(g.collecting)g.collecting.forEach(function(cp){var t=clamp(cp.t/cp.dur,0,1);cp.items.forEach(function(e,i){var k=clamp((t-i*.045)/.82,0,1),ease=k*k*(3-2*k),sx=e.x-W/2,sy=e.y-y,tx=(i?1:-1)*r*.5,ty=h*.26;var yy=sy+(ty-sy)*ease-Math.sin(k*Math.PI)*r*.19;drawSpr(kindImg(e),sx+(tx-sx)*ease,yy,r*DRAW_K*(1-.09*ease),e.angle+k*.22,1-clamp((t-.82)/.18,0,1));});});
+    ctx.restore();
+  }
+  // VC170: pair that matched rises a little, the lid opens, then it drops into the basket behind the front rim.
+  function drawBasketFront170(g) {
+    var im=IMG.ui.basket160,r=g.r,b=basketGeometry158(g),w=b.w,h=b.h,y=b.y;
+    var loaded=im&&im.complete&&im.naturalWidth;
+    ctx.save();ctx.translate(W/2,y);
+    if(g.collecting)g.collecting.forEach(function(cp){var t=clamp(cp.t/cp.dur,0,1);cp.items.forEach(function(e,i){
+      var side=i?1:-1,sx0=e.x-W/2,sy0=e.y-y,rise=clamp(t/.34,0,1),rz=rise*rise*(3-2*rise),dk=clamp((t-.34)/.5,0,1),dz=dk*dk*(3-2*dk);
+      var topX=sx0+(side*r*.55-sx0)*rz, topY=sy0-r*.8*rz, inX=side*r*.5, inY=h*.34;
+      var xx=dk>0?topX+(inX-topX)*dz:topX, yy=dk>0?topY+(inY-topY)*dz:topY;
+      var sc=(1+.08*Math.sin(Math.min(1,t/.34)*Math.PI))*(1-.12*dz), al=1-clamp((t-.86)/.14,0,1);
+      drawSpr(kindImg(e),xx,yy,r*DRAW_K*sc,e.angle*(1-dz)+dz*side*.25,al);});});
     // Foreground is the actual curved front rim: lower portions of fruit are naturally occluded.
     if(loaded){ctx.save();ctx.beginPath();ctx.moveTo(-w*.47,h*.30);ctx.bezierCurveTo(-w*.36,h*.46,w*.36,h*.46,w*.47,h*.30);ctx.lineTo(w*.53,h*1.03);ctx.lineTo(-w*.53,h*1.03);ctx.closePath();ctx.clip();ctx.drawImage(im,-w/2,0,w,h);ctx.restore();}
     // Replace the artwork's original static label completely with the live progress counter.
