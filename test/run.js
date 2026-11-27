@@ -30,7 +30,7 @@ const coins = c => S.wallet(c.id).coins;
 
   // 1 wallet + create/join/escrow
   const a = new C('A'), b = new C('B'); const w = await a.open(); await b.open();
-  ok(w.coins === 500, 'new device gets 500 coins'); ok(w.fee === 100, 'fee 100');
+  ok(w.coins === 500, 'new device gets 500 coins'); ok(/^[0-9a-f]{8}$/.test(w.pub), 'welcome carries own public id'); ok(w.fee === 100, 'fee 100');
   a.send({ t: 'create', difficulty: 'easy' }); const cr = await a.wait('created');
   ok(/^\d{4}$/.test(cr.code), '4-digit code'); ok(cr.coins === 400, 'host paid 100');
   b.send({ t: 'join', code: cr.code }); const jn = await b.wait('joined');

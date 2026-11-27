@@ -192,7 +192,7 @@ function handle(ws, m) {
     if (!/^[A-Za-z0-9_-]{16,64}$/.test(id)) return send(ws, { t: 'error', code: 'bad_device' });
     ws.id = id; ws.name = cleanName(m.name);
     const w = wallet(id); saveWallets();
-    send(ws, { t: 'welcome', coins: w.coins, fee: CFG.entryFee });
+    send(ws, { t: 'welcome', coins: w.coins, fee: CFG.entryFee, pub: pubId(id) });
     // reattach to a running game after a dropped connection
     const room = rooms.get(byDevice.get(id));
     if (room) {
