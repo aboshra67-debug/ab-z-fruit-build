@@ -21,5 +21,19 @@ ok(z.G.state==='lost','state lost after time up');
 z.onlinePrepare(10,778,60000);z.onlineGo();C.__ended=null;z.G.remaining=0;z.endLevel(true);ok(C.__ended&&C.__ended.win===true&&C.__ended.remaining===0,'win reports remaining 0');
 z.menu();ok(z.G.demo===true,'menu returns to demo board and clears online state');
 z.start(5,'classic');const c0=z.save.coins;ok(z.G.variant155==='classic'&&z.G.limit155===0,'classic after online has no limit');
+
+// styles: speed/action map onto the existing variants, same seed = same board for each style
+for(const st of ['race','speed','action']){
+  z.onlinePrepare(60,4242,7000,st);const a=sig(),g=z.G;
+  ok(g.online172===st&&g.variant155===(st==='race'?'online':st),'style '+st+' -> variant '+g.variant155);
+  ok(g.limit155===7,'room timer overrides the variant limit for '+st+' ('+g.limit155+')');
+  ok(g.state==='wait','waiting state for '+st);
+  z.onlinePrepare(60,4242,7000,st);ok(sig()===a,'same seed -> same board in style '+st);
+  if(st==='action')ok(z.G.cfg.action143.sequence.length>=6,'action events enabled in action style');
+}
+z.onlinePrepare(60,9,2000,'speed');z.onlineGo();C.__ended=null;z.G.matchScore155=14;z.advance(3);
+ok(C.__ended&&C.__ended.score===14&&C.__ended.reason==='time','speed time-up reports the score (reason time)');
+z.menu();z.start(5,'speed');ok(!z.G.online172&&z.G.limit155===60,'plain speed challenge unchanged outside online');
+
 console.log(fail?'FAILED '+fail:'PASS VC172 online hooks');process.exit(fail?1:0);
 `);

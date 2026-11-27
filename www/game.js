@@ -158,7 +158,7 @@
 
   function buildLevel(n, demo) {
     var cfg = LV.gen(n), rng = cfg.rng;
-    if(!demo&&mode155==='online'&&ONL172&&ONL172.seed){cfg.seed=(cfg.seed^ONL172.seed)>>>0;cfg.rng=rng=LV.mulberry32(cfg.seed);} // VC172: every player in a room gets the same board
+    if(!demo&&ONL172&&ONL172.seed){cfg.seed=(cfg.seed^ONL172.seed)>>>0;cfg.rng=rng=LV.mulberry32(cfg.seed);} // VC172: every player in a room gets the same board
     var variant=demo?'classic':mode155, help=variant==='classic'&&!demo?assistState155(n).fails:0;
     if(variant==='action'){
       cfg.action143.sequence=['monkey','falcon','bee','wind','spider','vortex'];cfg.action143.first=5;cfg.action143.interval=12;cfg.action143.maxAttacks=12;cfg.defense152=['cut','shield','spray','fan','anchor'];cfg.bee=1;cfg.bird=1;
@@ -167,7 +167,7 @@
 
     var g = { cfg: cfg, n: n, demo: !!demo, engine: newEngine(), hang: [], dyn: [], obst: [], fx: [], parts: [], bees: [], bird: null,
       time: 0, state: 'play', shake: 0, extra: 0, birdDone: 0, popped: 0, powerUsed: 0, maxStack: 0, gesture: 0, bombList: [], clouds: [],
-      stuckT: 0, fullT: 0, theme: THEMES[cfg.world],variant155:variant,assist155:help,limit155:variant==='online'&&ONL172?Math.ceil(ONL172.durationMs/1000):variant==='speed'?60:variant==='timed'?Math.max(60,Math.ceil(cfg.count*2.5)):0,lastProgress155:0,hintAt155:18 }; 
+      stuckT: 0, fullT: 0, theme: THEMES[cfg.world],variant155:variant,assist155:help,limit155:ONL172&&!demo?Math.ceil(ONL172.durationMs/1000):variant==='speed'?60:variant==='timed'?Math.max(60,Math.ceil(cfg.count*2.5)):0,lastProgress155:0,hintAt155:18 }; 
     for (var i = 0; i < 6; i++) g.clouds.push({ x: rnd() * W, y: 120 + rnd() * 380, s: .6 + rnd() * .9, v: 4 + rnd() * 9 });
 
     var topBar = (variant==='classic'?76:120), bottomBar = Math.ceil(((demo?12:dockHeight161(cfg))+Math.max(0,(window.innerHeight-H*scale)/2))/scale); // VC161 reserve real footer below basket
@@ -999,7 +999,7 @@
     if (G.state !== 'play') return;
     G.time += dt;
     if(G.limit155 && G.time>=G.limit155){G.time=G.limit155;refreshMode155();return finishChallenge155(G.variant155==='speed','time');}
-    refreshMode155();adaptive155();if(G.variant155==='online'&&window.ZF_ONLINE172)window.ZF_ONLINE172.tick(G);
+    refreshMode155();adaptive155();if(G.online172&&window.ZF_ONLINE172)window.ZF_ONLINE172.tick(G);
     updateAction133(dt);
     refreshDefense149(false);
     if(G.freezeUntil>G.time)return;
@@ -1189,7 +1189,7 @@
     if(pair.length&&!G.assistSwap160)toast(save.lang==='ar'?'جرّب الفاكهة المضيئة':'Try the highlighted fruit');
   }
 
-  function finishChallenge155(win,reason){if(!G||G.state!=='play')return;var v=G.variant155;if(v==='online'&&!G.demo)return onlineEnd172(win,reason);G.state=win?'won':'lost';var s=G.matchScore155||0,k=v+'_'+G.n,r=save.records155[k]||{};if(v==='speed'){r.best=Math.max(r.best||0,s);}else if(win){r.wins=(r.wins||0)+1;r.bestTime=Math.min(r.bestTime||Infinity,Math.ceil(G.time));}save.records155[k]=r;persist();(win?SFX.win:SFX.lose)();$('challengeTitle155').textContent=v==='speed'?(save.lang==='ar'?'نتيجة السرعة':'Speed result'):win?t('win'):(reason==='time'?(save.lang==='ar'?'انتهى الوقت':'Time is up'):t('full'));$('challengeResult155').textContent=(save.lang==='ar'?'الفواكه المطابقة: ':'Matched fruit: ')+s+' / '+G.total;$('challengeBest155').textContent=v==='speed'?(save.lang==='ar'?'أفضل نتيجة: ':'Best score: ')+r.best:(r.bestTime?(save.lang==='ar'?'أفضل وقت: ':'Best time: ')+r.bestTime+'s':'');$('pChallenge155').classList.remove('hidden');}
+  function finishChallenge155(win,reason){if(!G||G.state!=='play')return;var v=G.variant155;if(G.online172&&!G.demo)return onlineEnd172(win,reason);G.state=win?'won':'lost';var s=G.matchScore155||0,k=v+'_'+G.n,r=save.records155[k]||{};if(v==='speed'){r.best=Math.max(r.best||0,s);}else if(win){r.wins=(r.wins||0)+1;r.bestTime=Math.min(r.bestTime||Infinity,Math.ceil(G.time));}save.records155[k]=r;persist();(win?SFX.win:SFX.lose)();$('challengeTitle155').textContent=v==='speed'?(save.lang==='ar'?'نتيجة السرعة':'Speed result'):win?t('win'):(reason==='time'?(save.lang==='ar'?'انتهى الوقت':'Time is up'):t('full'));$('challengeResult155').textContent=(save.lang==='ar'?'الفواكه المطابقة: ':'Matched fruit: ')+s+' / '+G.total;$('challengeBest155').textContent=v==='speed'?(save.lang==='ar'?'أفضل نتيجة: ':'Best score: ')+r.best:(r.bestTime?(save.lang==='ar'?'أفضل وقت: ':'Best time: ')+r.bestTime+'s':'');$('pChallenge155').classList.remove('hidden');}
   function endLevel(win) {
     if(G.variant155!=='classic')return finishChallenge155(win,'board');
     if (G.state !== 'play') return;
@@ -1560,13 +1560,14 @@
   // VC172 online challenge hooks (used by online.js)
   function onlineEnd172(win,reason){
     G.state=win?'won':'lost'; (win?SFX.win:SFX.lose)();
-    if(window.ZF_ONLINE172)window.ZF_ONLINE172.gameEnded({win:win,reason:reason,remaining:Math.max(0,G.remaining|0),total:G.total|0,time:G.time});
+    if(window.ZF_ONLINE172)window.ZF_ONLINE172.gameEnded({win:win,reason:reason,remaining:Math.max(0,G.remaining|0),total:G.total|0,time:G.time,score:G.matchScore155|0});
   }
-  function onlinePrepare172(n,seed,durationMs){
-    ONL172={seed:seed>>>0,durationMs:durationMs}; rnd=LV.mulberry32((seed^0x9E3779B9)>>>0); // same random events for everyone
-    startLevel(n,'online'); G.state='wait'; $('hud').classList.add('online172'); return G;
+  function onlinePrepare172(n,seed,durationMs,style){
+    style=style==='speed'||style==='action'?style:'race';
+    ONL172={seed:seed>>>0,durationMs:durationMs,style:style}; rnd=LV.mulberry32((seed^0x9E3779B9)>>>0); // same random events for everyone
+    startLevel(n,style==='race'?'online':style); G.online172=style; G.state='wait'; $('hud').classList.add('online172'); return G;
   }
-  function onlineGo172(){ if(G&&G.variant155==='online'&&G.state==='wait'){G.state='play';G.time=0;} }
+  function onlineGo172(){ if(G&&G.online172&&G.state==='wait'){G.state='play';G.time=0;} }
   function startLevel(n,variant) {
     if(typeof variant==='string')mode155=variant;
     hideAllPopups(); mode = 'play'; n = Math.max(1, Math.min(LV.MAX_LEVEL, n | 0));
@@ -1669,7 +1670,7 @@
       var ps = ['pSettings', 'pPause', 'pWin', 'pLose','pChallenge155']; for (var i = 0; i < ps.length; i++) if (!$(ps[i]).classList.contains('hidden')) { if (ps[i] === 'pSettings') $('pSettings').classList.add('hidden'); else if (ps[i] === 'pPause') { $('pPause').classList.add('hidden'); if (G) G.state = 'play'; } else showMenu(); return 'ok'; }
       if (screen === 'sOnline172' && window.ZF_ONLINE172) return window.ZF_ONLINE172.back();
       if (screen === 'sLevels'||screen==='sModes155') { showMenu(); return 'ok'; }
-      if (mode === 'play' && G && G.variant155 === 'online') { if (window.ZF_ONLINE172) window.ZF_ONLINE172.askLeave(); return 'ok'; }
+      if (mode === 'play' && G && G.online172) { if (window.ZF_ONLINE172) window.ZF_ONLINE172.askLeave(); return 'ok'; }
       if (mode === 'play') { if (G && G.state === 'play') { G.state = 'paused'; $('pPause').classList.remove('hidden'); } return 'ok'; }
       return 'exit';
     },

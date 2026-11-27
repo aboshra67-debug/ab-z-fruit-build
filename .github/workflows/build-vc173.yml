@@ -1,0 +1,42 @@
+name: Build VC173 (test-key signed)
+on:
+  push:
+    branches: [ vc173-build ]
+permissions:
+  contents: write
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.7'
+      # No KS_PASS on purpose: app/build.gradle falls back to app/test-debug.keystore,
+      # the same certificate as VC163 (SHA-256 8a9d7359...a28a), so the APK installs over VC163.
+      - name: Build debug APK
+        run: gradle --no-daemon assembleDebug
+      - name: Verify and collect
+        run: |
+          mkdir -p out
+          cp app/build/outputs/apk/debug/app-debug.apk out/ABZFruit_VC173.apk
+          BT=$(ls -d $ANDROID_HOME/build-tools/* | sort -V | tail -1)
+          { echo "== apksigner verify"; $BT/apksigner verify --verbose --print-certs out/ABZFruit_VC173.apk;
+            echo "== zipalign -c 4"; $BT/zipalign -c -v 4 out/ABZFruit_VC173.apk | tail -3;
+            echo "== badging"; $BT/aapt2 dump badging out/ABZFruit_VC173.apk | grep -E "^package|sdkVersion|targetSdk";
+            echo "== sha256"; sha256sum out/ABZFruit_VC173.apk; } > out/VERIFY_VC173.txt 2>&1 || true
+          cat out/VERIFY_VC173.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ABZFruit-VC173
+          path: out/*
+      - name: Commit result back to this branch
+        run: |
+          git config user.name "build-bot"; git config user.email "build-bot@users.noreply.github.com"
+          git add -f out/ABZFruit_VC173.apk out/VERIFY_VC173.txt
+          git commit -m "VC173 build output (CI)"
+          git push origin HEAD:vc173-build

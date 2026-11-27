@@ -1,7 +1,7 @@
 import asyncio, json, subprocess, os, sys, time
 from playwright.async_api import async_playwright
 WWW='/home/claude/work/vc164/www'
-env=dict(os.environ,PORT='8099',DATA_DIR='/tmp/zfe2e'+str(int(time.time())),COUNTDOWN_MS='1500',MIN_FINISH_MS='300',DUR_EASY='8')
+env=dict(os.environ,PORT='8099',DATA_DIR='/tmp/zfe2e'+str(int(time.time())),COUNTDOWN_MS='1500',MIN_FINISH_MS='300',DUR_EASY='8',SPEED_DURATION='6',TIMEUP_GRACE_MS='1500')
 srv=subprocess.Popen(['node','/home/claude/zf-server/server.js'],env=env,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
 web=subprocess.Popen(['python3','-m','http.server','8098','-d',WWW],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
 time.sleep(1.2)
@@ -65,6 +65,28 @@ async def main():
         await p2.click('#onResultOk172')
         await p1.click('#onBack172'); await p1.wait_for_selector('#sMenu:not(.hidden)',timeout=3000); ok(True,'back to main menu')
         for n,e in (('p1',e1),('p2',e2)): ok(not e,'%s no JS errors %s'%(n,e[:3]))
+
+        # ---- scenario 2: host picks the speed style in the lobby after the guest joined
+        q1,f1=await player(b,'Host'); q2,f2=await player(b,'Guest')
+        await q1.click('#onCreate172'); await q1.wait_for_function("!document.getElementById('onLobby172').classList.contains('hidden')",timeout=5000)
+        code=await q1.inner_text('#onCodeBig172')
+        await q2.fill('#onCode172',code); await q2.click('#onJoin172')
+        await q1.wait_for_function("document.querySelectorAll('#onPlayers172 .on172p').length==2",timeout=5000)
+        ok(await q1.is_visible('#onStyleHost172'),'host sees the style picker'); ok(not await q2.is_visible('#onStyleHost172'),'guest does not')
+        await q1.click('#onStyleHost172 [data-s=speed]')
+        await q2.wait_for_function("document.getElementById('onRoomInfo172').textContent.includes('سرعة')",timeout=4000)
+        ok('دقيقة واحدة' in await q2.inner_text('#onStyleDesc172'),'guest sees the chosen style and its description')
+        await q1.screenshot(path='/home/claude/out172/lobby_style.png')
+        await q1.click('#onStart172')
+        for pg in (q1,q2): await pg.wait_for_function("ZF.G && ZF.G.online172==='speed' && ZF.G.state==='play'",timeout=8000)
+        v=await q1.evaluate("ZF.G.variant155+'/'+ZF.G.limit155"); ok(v=='speed/6','speed variant with the 6 s test timer ('+v+')')
+        await q1.evaluate("ZF.G.matchScore155=12"); await q2.evaluate("ZF.G.matchScore155=4")
+        await q1.wait_for_timeout(1500); await q1.screenshot(path='/home/claude/out172/speed_play.png')
+        for pg in (q1,q2): await pg.wait_for_selector('#pOnline172:not(.hidden)',timeout=15000)
+        rr1=await q1.inner_text('#onResultList172'); ok(rr1.split('\n')[1].strip()=='Host' and '12' in rr1 and '4' in rr1,'speed ranking by score: '+rr1.replace('\n',' | '))
+        ok('800' not in await q1.inner_text('#onResultCoins172') and '600' in await q1.inner_text('#onResultCoins172'),'speed winner balance 600')
+        await q1.screenshot(path='/home/claude/out172/speed_result.png')
+        for n,e in (('q1',f1),('q2',f2)): ok(not e,'%s no JS errors %s'%(n,e[:3]))
         await b.close()
 try: asyncio.run(main())
 finally: srv.terminate(); web.terminate()
