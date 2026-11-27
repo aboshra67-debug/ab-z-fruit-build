@@ -1,0 +1,28 @@
+== apksigner verify
+Verifies
+Verified using v1 scheme (JAR signing): false
+Verified using v2 scheme (APK Signature Scheme v2): true
+Verified using v3 scheme (APK Signature Scheme v3): false
+Verified using v3.1 scheme (APK Signature Scheme v3.1): false
+Verified using v3.2 scheme (APK Signature Scheme v3.2): false
+Verified using v4 scheme (APK Signature Scheme v4): false
+Verified for SourceStamp: false
+Number of signers: 1
+V2 Signer: certificate DN: CN=AB Z Fruit Test, O=AB Software, C=EG
+V2 Signer: certificate SHA-256 digest: 8a9d7359216034cd71d2060fbbad454ace828124c0d3691636f3d53df914a28a
+V2 Signer: certificate SHA-1 digest: 375667ab8d3fe4772a3a6a44809f2d84b172c854
+V2 Signer: certificate MD5 digest: 1c9946df77b4b2851959602101668709
+V2 Signer: key algorithm: RSA
+V2 Signer: key size (bits): 2048
+V2 Signer: public key SHA-256 digest: 0fb6ec88b6e55850b72229cac8a8f502b9cad479de5577210d4f32f8564e7bbd
+V2 Signer: public key SHA-1 digest: bd8052780dcd66849d3563cdfc4afede9868b50a
+V2 Signer: public key MD5 digest: e50533a8f1e88611abf5d2f957b0ea5a
+== zipalign -c 4
+ 9056448 res/mipmap-xxxhdpi-v4/ic_launcher.png (OK)
+ 9103344 resources.arsc (OK)
+Verification successful
+== badging
+package: name='com.absoftware.zfruit' versionCode='172' versionName='1.7.9' platformBuildVersionName='14' platformBuildVersionCode='34' compileSdkVersion='34' compileSdkVersionCodename='14'
+targetSdkVersion:'34'
+== sha256
+451d11cba1f46b80d3b59a04833d0d8b0ab067725bbb940b30ac69fc46290a05  out/ABZFruit_VC172.apk
