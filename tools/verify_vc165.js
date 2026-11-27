@@ -11,10 +11,13 @@ for(const n of [1,34,150,300]){
  assert(a>.47&&a<.59,'gravity '+n+' '+a.toFixed(3));
  // 2) full channel that settles without a match loses within a second
  g=setup(n);r=g.r;let seen=new Set(),sel=[];for(const f of g.hang){if(f.bomb||f.caged||f.ice||f.plate||f.mystery||!z.isVisible(f)||seen.has(f.kind))continue;seen.add(f.kind);sel.push(f);if(sel.length===g.cfg.cap)break;}
- assert(sel.length===g.cfg.cap,'distinct '+n);for(let f of g.hang.slice())if(!sel.includes(f)&&f.hb)M.Composite.remove(g.engine.world,f.hb);g.hang=sel.slice();
+ assert(sel.length===g.cfg.cap,'distinct '+n);for(let f of g.hang.slice())if(!sel.includes(f)&&f.hb)M.Composite.remove(g.engine.world,f.hb);const ex=g.hang.find(f=>!sel.includes(f)&&!f.bomb&&!f.caged&&!f.ice&&!f.plate&&!f.mystery&&z.isVisible(f));if(ex&&!ex.hb)z.release; g.hang=sel.concat(ex?[ex]:[]);
  sel.forEach((f,i)=>{z.release(f);M.Body.setPosition(f.body,{x:360,y:g.floorY-r*1.1-i*r*2.2});M.Body.setVelocity(f.body,{x:0,y:0});});
  for(let i=0;i<20;i++)z.advance(1/60);assert(g.state==='play','not instant '+n);
- for(let i=0;i<90;i++)z.advance(1/60);assert(g.state==='lost','full channel loses '+n+' '+g.state);
+ // VC169: 15 s grace before the loss; still playing at 14 s of grace, lost after 16 s
+ for(let i=0;i<90;i++)z.advance(1/60);assert(g.state==='play'&&g.grace166>0,'grace running '+n+' '+g.state+' '+g.grace166);
+ for(let i=0;i<13*60;i++)z.advance(1/60);assert(g.state==='play','still in grace at ~14.5s '+n+' '+g.state);
+ for(let i=0;i<2.5*60;i++)z.advance(1/60);assert(g.state==='lost','full channel loses after grace '+n+' '+g.state);
  // 3) a fruit that completes a pair frees space instead of losing
  g=setup(n);r=g.r;const byKind={};for(const f of g.hang){if(f.bomb||f.caged||f.ice||f.plate||f.mystery||!z.isVisible(f))continue;(byKind[f.kind]=byKind[f.kind]||[]).push(f);}
  const pairKind=Object.keys(byKind).find(k=>byKind[k].length>=2);const others=Object.keys(byKind).filter(k=>k!==pairKind).slice(0,g.cfg.cap-2).map(k=>byKind[k][0]);
@@ -25,5 +28,5 @@ for(const n of [1,34,150,300]){
  // 4) basket stays small: about 1.9x the channel width and never wider than the old 43% board cap
  assert(true);
 }
-console.log(w=C.innerWidth+'x'+C.innerHeight+': VC165 gravity(original-measured), settle-then-lose, pair-completion survives PASS');
+console.log(w=C.innerWidth+'x'+C.innerHeight+': VC165 gravity(original-measured), settle-then-grace-then-lose, pair-completion survives PASS');
 `);

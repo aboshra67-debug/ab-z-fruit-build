@@ -1001,6 +1001,7 @@
     updateAction133(dt);
     refreshDefense149(false);
     if(G.freezeUntil>G.time)return;
+    G.lid166 = G.collecting && G.collecting.length ? Math.min(1, (G.lid166||0) + dt * 9) : Math.max(0, (G.lid166||0) - dt * 7);
     if(G.collecting) for(var ci=G.collecting.length-1;ci>=0;ci--){var cp=G.collecting[ci];cp.t+=dt;if(cp.t>=cp.dur){G.collecting.splice(ci,1);finishPair(cp.items);}}
     G.comboShow=Math.max(0,(G.comboShow||0)-dt); G.basketBounce=Math.max(0,(G.basketBounce||0)-dt); G.basketGlow = Math.max(0,(G.basketGlow||0)-dt);
     // physics
@@ -1061,8 +1062,12 @@
     var full=inside.length>=G.cfg.cap;
     // VC165: like the original, a full channel that settles without a match loses the level at once.
     var calm=inside.every(function(e){return e.body.speed<.6;});
-    if(!full || G.chain>0 || G.collecting&&G.collecting.length || !calm){G.fullT=0;G.overflowSeen=false;}
-    else{G.overflowSeen=true;G.fullT+=dt;if(G.fullT>=.5){G.fullT=0;G.overflowSeen=false;return endLevel(false);}}
+    // VC169: when the channel is full and settled the player gets GRACE_S166 seconds to swap/use tools before the level is lost.
+    if(!full || G.chain>0 || G.collecting&&G.collecting.length){G.fullT=0;G.overflowSeen=false;G.grace166=null;}
+    else if(G.grace166==null){
+      if(!calm){G.fullT=0;G.overflowSeen=false;}
+      else{G.overflowSeen=true;G.fullT+=dt;if(G.fullT>=.5){G.fullT=0;G.grace166=GRACE_S166;toast('المجرى امتلأ! بدّل فاكهة قبل ما الوقت يخلص');}}
+    }else{G.overflowSeen=true;G.fullT=Math.max(G.fullT,.06);G.grace166-=dt;if(G.grace166<=0){G.grace166=null;G.fullT=0;G.overflowSeen=false;return endLevel(false);}}
 
     // deadlock: nothing left to drop and the channel cannot clear itself
     var freeLeft = G.hang.some(function (e) { return !e.bomb && !e.caged && !e.stung; });
@@ -1314,6 +1319,12 @@
       var txt=(save.lang==='ar'?'كومبو ×':'COMBO ×')+G.combo+(G.comboReward?'  +2':'');
       var yy=G.mouthY-G.r*3.5-(1.15-G.comboShow)*22;ctx.strokeText(txt,W/2,yy);ctx.fillText(txt,W/2,yy);ctx.restore();
     }
+    if (G.grace166 != null && G.state === 'play') {
+      var gs=Math.ceil(G.grace166), gx=G.chR+G.r*2.1, gy=G.mouthY+G.r*1.6, pr=G.r*.95, fr=clamp(G.grace166/GRACE_S166,0,1), warn=G.grace166<5;
+      ctx.save();ctx.fillStyle=warn?'rgba(176,30,20,.92)':'rgba(120,64,18,.92)';ctx.beginPath();ctx.arc(gx,gy,pr,0,7);ctx.fill();
+      ctx.strokeStyle='#ffe3a1';ctx.lineWidth=Math.max(3,pr*.16);ctx.beginPath();ctx.arc(gx,gy,pr*.82,-Math.PI/2,-Math.PI/2+Math.PI*2*fr);ctx.stroke();
+      ctx.fillStyle='#fff5d5';ctx.font='bold '+Math.round(pr*1.0)+'px sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.direction='ltr';ctx.fillText(String(gs),gx,gy+pr*.04);ctx.restore();
+    }
     if ((G.fullT > 0.05 || G.stackNow >= G.cfg.cap-1) && G.state === 'play') {
       // Keep the capacity warning, but never draw a crossbar across the fruit path.
       ctx.save();ctx.strokeStyle='rgba(255,166,50,'+(.65+.20*Math.sin(G.time*7))+')';ctx.lineWidth=5;ctx.lineCap='round';
@@ -1385,6 +1396,7 @@
     });
     ctx.restore();
   }
+  var GRACE_S166 = 15;
   function drawBasket(g) {
     var im=IMG.ui.basket160,r=g.r,b=basketGeometry158(g),w=b.w,h=b.h,y=b.y;
     ctx.save();ctx.translate(W/2,y);
@@ -1392,6 +1404,13 @@
     var loaded=im&&im.complete&&im.naturalWidth;
     if(loaded)ctx.drawImage(im,-w/2,0,w,h);
     else {ctx.fillStyle='#bb8342';ctx.beginPath();ctx.moveTo(-w*.49,h*.18);ctx.lineTo(w*.49,h*.18);ctx.lineTo(w*.35,h*.89);ctx.quadraticCurveTo(0,h*1.10,-w*.35,h*.89);ctx.closePath();ctx.fill();ctx.fillStyle='#70401a';ctx.beginPath();ctx.ellipse(0,h*.18,w*.47,h*.16,0,0,Math.PI*2);ctx.fill();}
+    // VC169: closed wicker lid over the opening, hinged at the back; it opens while a pair is dropped in.
+    (function(){var o=clamp(g.lid166||0,0,1),eo=o*o*(3-2*o),rx=w*.47,ry0=h*.15,back=h*.19-ry0,ry=ry0*(1-.86*eo),cy=back+ry;
+      ctx.save();var lg=ctx.createLinearGradient(0,cy-ry,0,cy+ry);lg.addColorStop(0,'#d9a35c');lg.addColorStop(1,'#a8692b');
+      ctx.fillStyle=lg;ctx.strokeStyle='#6b3d16';ctx.lineWidth=Math.max(2,w*.012);ctx.beginPath();ctx.ellipse(0,cy,rx,Math.max(1.5,ry),0,0,Math.PI*2);ctx.fill();ctx.stroke();
+      if(ry>ry0*.4){ctx.strokeStyle='rgba(107,61,22,.45)';ctx.lineWidth=Math.max(1.2,w*.007);for(var k=-3;k<=3;k++){ctx.beginPath();ctx.ellipse(0,cy,Math.abs(k)*rx/3.4+1,Math.max(1,ry*Math.abs(k)/3.4),0,0,Math.PI*2);if(k>0)ctx.stroke();}
+        for(var m=-4;m<=4;m++){ctx.beginPath();ctx.moveTo(m*rx/4.6,cy-ry*Math.sqrt(Math.max(0,1-Math.pow(m/4.6,2))));ctx.lineTo(m*rx/4.6,cy+ry*Math.sqrt(Math.max(0,1-Math.pow(m/4.6,2))));ctx.stroke();}}
+      ctx.restore();})();
     // Draw only the actual two lowest fruits, in perspective, inside the wicker opening.
     g.dyn.slice().sort((a,b)=>a.body.position.y-b.body.position.y).forEach(function(e){var p=basketFruit160(g,e);if(!p)return;drawSpr(kindImg(e),p.x-W/2,p.y-y,r*DRAW_K,e.body.angle+(e.visualAngle||0),1);});
     if(g.collecting)g.collecting.forEach(function(cp){var t=clamp(cp.t/cp.dur,0,1);cp.items.forEach(function(e,i){var k=clamp((t-i*.045)/.82,0,1),ease=k*k*(3-2*k),sx=e.x-W/2,sy=e.y-y,tx=(i?1:-1)*r*.5,ty=h*.26;var yy=sy+(ty-sy)*ease-Math.sin(k*Math.PI)*r*.19;drawSpr(kindImg(e),sx+(tx-sx)*ease,yy,r*DRAW_K*(1-.09*ease),e.angle+k*.22,1-clamp((t-.82)/.18,0,1));});});
@@ -1580,7 +1599,7 @@
     bind('lRetry', function () { startLevel(G.n); }); bind('lHome', function () { showMenu(); });
     function rescue() {
       if(!G || G.state!=='lost')return;
-      $('pLose').classList.add('hidden');G.state='play';G.fullT=0;G.overflowSeen=false;G.deadT=0;G.deadlock=false;G.powerUsed++;G.combo=0;G.lastMatch=null;
+      $('pLose').classList.add('hidden');G.state='play';G.fullT=0;G.grace166=null;G.overflowSeen=false;G.deadT=0;G.deadlock=false;G.powerUsed++;G.combo=0;G.lastMatch=null;
       for(var i=0;i<3;i++)doTrashSilent();bumpCounter();SFX.power();
     }
     bind('lCoins',function(){if(!G||G.state!=='lost')return;if(!channelFruits().length){toast(save.lang==='ar'?'مفيش فاكهة في المجرى للإنقاذ':'No fruit in the channel to rescue');return;}persist();updateCoins();rescue();});
