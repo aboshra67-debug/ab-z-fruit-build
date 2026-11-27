@@ -136,7 +136,8 @@
 
   function newEngine() {
     var e = Engine.create({ positionIterations: 14, velocityIterations: 10 });
-    e.gravity.y = 1; e.gravity.scale = 0.001626; // VC166: tuned with frictionAir .002 so the channel-region fall matches the original's measured 0.528 px/frame^2 (VC165 used 0.001458 with frictionAir .008, which measured ~0.36-0.38 in real play)
+    e.gravity.y = 1; e.gravity.scale = 0.001626; // VC167: fruit friction .004 (was .14) so a fruit slides down the slope like the original (measured 13 px/frame at the mouth) instead of rolling slowly.
+    // VC166: tuned with frictionAir .002 so the channel-region fall matches the original's measured 0.528 px/frame^2 (VC165 used 0.001458 with frictionAir .008, which measured ~0.36-0.38 in real play)
     return e;
   }
 
@@ -564,7 +565,7 @@
     if(clash){if(e.pendingDrop)return true;if(G.hang.filter(function(f){return f.pendingDrop;}).length>=3)return false;e.pendingDrop=true;e.wob=.25;return true;}
     e.pendingDrop=false;hbOff(e);
     e.state = 'fall'; e.mystery = false;
-    var b = fruitBody166(e, e.x, e.y, { restitution: .05, friction: .14, frictionStatic: .022, frictionAir: .002, density: .0016, collisionFilter:{category:NORMAL_CATEGORY,mask:0xffffffff}, label: 'fruit' });
+    var b = fruitBody166(e, e.x, e.y, { restitution: .05, friction: .004, frictionStatic: 0, frictionAir: .002, density: .0016, collisionFilter:{category:NORMAL_CATEGORY,mask:0xffffffff}, label: 'fruit' });
     // Start from rest at the exact selected position; gravity alone releases it.
     b.ent = e; e.body = b; e.idle = 0; Composite.add(G.engine.world, b);
     G.hang.splice(G.hang.indexOf(e), 1); G.dyn.push(e);
