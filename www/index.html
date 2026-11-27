@@ -60,8 +60,39 @@
     <div class="brand">AB Software</div>
   </div>
 
-  <div class="screen hidden" id="sModes155"><div class="topbar"><button class="ib" id="modesBack155"><img src="assets/ui/back.png" alt=""></button><h2 data-t="modes155">تحديات اللعب</h2><span class="sp"></span></div><div class="modes155"><button class="big green" id="classic155" data-t="classic155">اللعب الكلاسيكي</button><button class="big orange" id="timed155" data-t="timed155">تحدي الوقت</button><button class="big blue" id="speed155" data-t="speed155">تحدي السرعة · 60 ثانية</button><button class="big purple" id="action155" data-t="action155">تحدي الأكشن</button><p id="records155"></p></div></div>
+  <div class="screen hidden" id="sModes155"><div class="topbar"><button class="ib" id="modesBack155"><img src="assets/ui/back.png" alt=""></button><h2 data-t="modes155">تحديات اللعب</h2><span class="sp"></span></div><div class="modes155"><button class="big green" id="classic155" data-t="classic155">اللعب الكلاسيكي</button><button class="big orange" id="timed155" data-t="timed155">تحدي الوقت</button><button class="big blue" id="speed155" data-t="speed155">تحدي السرعة · 60 ثانية</button><button class="big purple" id="action155" data-t="action155">تحدي الأكشن</button><button class="big blue" id="online172" data-t="online155">تحدي أونلاين</button><p id="records155"></p></div></div>
   <div class="popup hidden" id="pChallenge155"><div class="card"><h2 id="challengeTitle155"></h2><p id="challengeResult155"></p><p id="challengeBest155"></p><button class="big green" id="challengeRetry155" data-t="replay">إعادة</button><button class="big blue" id="challengeHome155" data-t="home">الرئيسية</button></div></div>
+  <!-- VC172 online challenge -->
+  <div class="screen hidden" id="sOnline172">
+    <div class="topbar"><button class="ib" id="onBack172"><img src="assets/ui/back.png" alt=""></button><h2 id="onTitle172">تحدي أونلاين</h2><span class="sp"></span></div>
+    <div class="on172box" id="onHome172">
+      <div class="pill on172coins"><img src="assets/el/coin.png" alt=""><b id="onCoins172">0</b></div>
+      <div class="on172lbl" id="onNameLbl172">اسمك</div>
+      <input id="onName172" maxlength="14" autocomplete="off" spellcheck="false">
+      <div class="on172lbl" id="onDiffLbl172">الصعوبة</div>
+      <div class="seg on172seg"><button data-d="easy">سهل</button><button data-d="medium" class="on">متوسط</button><button data-d="hard">صعب</button></div>
+      <button class="big green" id="onCreate172">إنشاء غرفة</button>
+      <div class="on172lbl" id="onJoinLbl172">أو ادخل غرفة بالكود</div>
+      <div class="on172join"><input id="onCode172" inputmode="numeric" maxlength="4" placeholder="0000" autocomplete="off"><button class="big orange" id="onJoin172">ادخل</button></div>
+      <p class="on172note" id="onNote172"></p>
+    </div>
+    <div class="on172box hidden" id="onLobby172">
+      <div class="on172code" id="onCodeBig172">0000</div>
+      <div class="on172lbl" id="onRoomInfo172"></div>
+      <div class="seg on172seg hidden" id="onDiffHost172"><button data-d="easy">سهل</button><button data-d="medium">متوسط</button><button data-d="hard">صعب</button></div>
+      <div class="on172list" id="onPlayers172"></div>
+      <p class="on172note" id="onWaitHost172"></p>
+      <button class="big green" id="onStart172">ابدأ</button>
+      <button class="big blue" id="onLeave172">خروج</button>
+    </div>
+    <div class="on172status hidden" id="onConn172"></div>
+  </div>
+  <div id="on172count" class="hidden"></div>
+  <div id="on172stand" class="hidden"><div id="on172rows"></div><button id="on172exit" type="button" aria-label="exit">✕</button></div>
+  <div id="on172wait" class="hidden"></div>
+  <div class="popup hidden" id="pOnline172"><div class="card"><h2 id="onResultTitle172">الترتيب النهائي</h2><div id="onResultList172"></div><p id="onResultCoins172"></p><button class="big green" id="onResultOk172">تمام</button></div></div>
+  <div class="popup hidden" id="pOnLeave172"><div class="card"><p id="onLeaveTxt172"></p><button class="big orange" id="onLeaveYes172">اخرج</button><button class="big green" id="onLeaveNo172">كمّل</button></div></div>
+
   <!-- level select -->
   <div class="screen hidden" id="sLevels">
     <div class="topbar"><button class="ib" id="btnLevelsBack"><img src="assets/ui/back.png" alt=""></button><h2 data-t="levels">المراحل</h2><span class="sp"></span></div>
@@ -133,5 +164,6 @@
 <script src="hulls.js"></script>
 <script src="levels.js"></script>
 <script src="game.js"></script>
+<script src="online.js"></script>
 </body>
 </html>

@@ -1,0 +1,71 @@
+import asyncio, json, subprocess, os, sys, time
+from playwright.async_api import async_playwright
+WWW='/home/claude/work/vc164/www'
+env=dict(os.environ,PORT='8099',DATA_DIR='/tmp/zfe2e'+str(int(time.time())),COUNTDOWN_MS='1500',MIN_FINISH_MS='300',DUR_EASY='8')
+srv=subprocess.Popen(['node','/home/claude/zf-server/server.js'],env=env,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
+web=subprocess.Popen(['python3','-m','http.server','8098','-d',WWW],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
+time.sleep(1.2)
+fails=[]
+def ok(c,m):
+    print(('OK   ' if c else 'FAIL ')+m)
+    if not c: fails.append(m)
+async def player(browser,name):
+    ctx=await browser.new_context(viewport={'width':412,'height':915},device_scale_factor=1)
+    await ctx.add_init_script("window.ZF_ONLINE_URL='ws://127.0.0.1:8099';")
+    pg=await ctx.new_page(); errs=[]
+    pg.on('pageerror',lambda e:errs.append(str(e))); pg.on('response',lambda r: errs.append('404 '+r.url) if r.status==404 else None)
+    await pg.goto('http://127.0.0.1:8098/index.html')
+    await pg.wait_for_function("document.getElementById('sMenu') && !document.getElementById('sMenu').classList.contains('hidden')",timeout=30000)
+    await pg.click('#btnModes'); await pg.click('#online172')
+    await pg.wait_for_function("document.getElementById('onConn172').classList.contains('hidden')",timeout=8000)
+    await pg.fill('#onName172',name)
+    return pg,errs
+async def main():
+    async with async_playwright() as p:
+        b=await p.chromium.launch(executable_path='/usr/bin/google-chrome',args=['--no-sandbox'])
+        p1,e1=await player(b,'أحمد'); p2,e2=await player(b,'Sara')
+        ok(await p1.inner_text('#onCoins172')=='500','new player shows 500 coins')
+        await p1.screenshot(path='/home/claude/out172/home.png')
+        await p1.click('[id=onCreate172]')
+        await p1.wait_for_function("!document.getElementById('onLobby172').classList.contains('hidden')",timeout=5000)
+        code=await p1.inner_text('#onCodeBig172'); ok(len(code)==4 and code.isdigit(),'room code '+code)
+        await p1.click('#onLobby172 [data-d=easy]')
+        await p2.fill('#onCode172',code); await p2.click('#onJoin172')
+        await p2.wait_for_function("!document.getElementById('onLobby172').classList.contains('hidden')",timeout=5000)
+        await p1.wait_for_function("document.querySelectorAll('#onPlayers172 .on172p').length==2",timeout=5000)
+        ok(await p1.inner_text('#onCoins172')!='' ,'lobby has 2 players on host')
+        await p1.screenshot(path='/home/claude/out172/lobby.png')
+        await p1.click('#onStart172')
+        for pg in (p1,p2):
+            await pg.wait_for_function("window.ZF && ZF.G && ZF.G.variant155==='online'",timeout=8000)
+        await p1.wait_for_timeout(400); await p1.screenshot(path='/home/claude/out172/countdown.png')
+        for pg in (p1,p2):
+            await pg.wait_for_function("ZF.G.state==='play'",timeout=8000)
+        sig="(()=>{const G=ZF.G;return JSON.stringify({n:G.n,seed:G.cfg.seed,lim:G.limit155,total:G.total,h:G.hang.map(e=>[e.id,e.kind,!!e.bomb,!!e.caged])})})()"
+        s1=json.loads(await p1.evaluate(sig)); s2=json.loads(await p2.evaluate(sig))
+        ok(s1==s2,'both players got the identical board (seed %s, level %s, %s fruit)'%(s1['seed'],s1['n'],s1['total']))
+        ok(s1['n']==10 and s1['lim']<=8,'easy level 10 with room timer %ss'%s1['lim'])
+        hidden=await p1.evaluate("getComputedStyle(document.getElementById('hudBottom')).display+'/'+getComputedStyle(document.getElementById('btnPause')).visibility")
+        ok(hidden=='none/hidden','helper tools hidden and pause invisible in online play ('+hidden+')')
+        await p1.wait_for_timeout(1500)
+        stand=await p1.inner_text('#on172rows'); ok('Sara' in stand and 'أحمد' in stand,'live standings list both players')
+        await p1.screenshot(path='/home/claude/out172/play.png')
+        await p1.evaluate("ZF.G.remaining=0;ZF.endLevel(true)")
+        await p1.wait_for_selector('#on172wait:not(.hidden)',timeout=3000)
+        await p1.screenshot(path='/home/claude/out172/wait.png')
+        for pg in (p1,p2):
+            await pg.wait_for_selector('#pOnline172:not(.hidden)',timeout=15000)
+        await p1.screenshot(path='/home/claude/out172/result.png'); await p2.screenshot(path='/home/claude/out172/result2.png')
+        r1=await p1.inner_text('#onResultList172'); r2=await p2.inner_text('#onResultCoins172')
+        ok(r1.strip().startswith('1') and 'أحمد' in r1.split('\n')[1] if '\n' in r1 else False,'ranking has the finisher first')
+        ok('+200' in r1,'winner shows +200 prize')
+        c1=await p1.inner_text('#onResultCoins172'); ok('600' in c1,'winner balance 600 ('+c1+')'); ok('400' in r2,'loser balance 400 ('+r2+')')
+        await p1.click('#onResultOk172'); await p1.wait_for_selector('#onHome172:not(.hidden)',timeout=4000)
+        ok(await p1.inner_text('#onCoins172')=='600','back on online home with 600 coins')
+        await p2.click('#onResultOk172')
+        await p1.click('#onBack172'); await p1.wait_for_selector('#sMenu:not(.hidden)',timeout=3000); ok(True,'back to main menu')
+        for n,e in (('p1',e1),('p2',e2)): ok(not e,'%s no JS errors %s'%(n,e[:3]))
+        await b.close()
+try: asyncio.run(main())
+finally: srv.terminate(); web.terminate()
+print('FAILED %d'%len(fails) if fails else 'ALL PASS'); sys.exit(1 if fails else 0)

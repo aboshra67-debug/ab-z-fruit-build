@@ -40,9 +40,10 @@
   Object.keys(DEF149).forEach(k=>{var v=save.def149[k];save.def149[k]=Number.isFinite(v)?Math.max(0,Math.floor(v)):3;});
   if(!save.assist155||typeof save.assist155!=='object'||Array.isArray(save.assist155))save.assist155={};
   if(!save.records155||typeof save.records155!=='object'||Array.isArray(save.records155))save.records155={};
-  Object.assign(TR.ar,{modes155:'تحديات اللعب',classic155:'اللعب الكلاسيكي',timed155:'تحدي الوقت',speed155:'تحدي السرعة · 60 ثانية',action155:'تحدي الأكشن'});
-  Object.assign(TR.en,{modes155:'Game challenges',classic155:'Classic',timed155:'Time challenge',speed155:'Speed · 60 seconds',action155:'Action challenge'});
+  Object.assign(TR.ar,{online155:'تحدي أونلاين',modes155:'تحديات اللعب',classic155:'اللعب الكلاسيكي',timed155:'تحدي الوقت',speed155:'تحدي السرعة · 60 ثانية',action155:'تحدي الأكشن'});
+  Object.assign(TR.en,{online155:'Online challenge',modes155:'Game challenges',classic155:'Classic',timed155:'Time challenge',speed155:'Speed · 60 seconds',action155:'Action challenge'});
   var mode155='classic';
+  var ONL172=null; // VC172: online challenge session {seed,durationMs}; null outside the online mode
   function assistState155(n){var k=String(n),s=save.assist155[k];if(!s||typeof s!=='object')s=save.assist155[k]={fails:0,granted:false};s.fails=Math.max(0,Math.min(99,Number(s.fails)||0));return s;}
   function persist() { try { localStorage.setItem(SKEY, JSON.stringify(save)); } catch (e) {} }
   function t(k) { return (TR[save.lang] && TR[save.lang][k]) || TR.ar[k] || k; }
@@ -157,6 +158,7 @@
 
   function buildLevel(n, demo) {
     var cfg = LV.gen(n), rng = cfg.rng;
+    if(!demo&&mode155==='online'&&ONL172&&ONL172.seed){cfg.seed=(cfg.seed^ONL172.seed)>>>0;cfg.rng=rng=LV.mulberry32(cfg.seed);} // VC172: every player in a room gets the same board
     var variant=demo?'classic':mode155, help=variant==='classic'&&!demo?assistState155(n).fails:0;
     if(variant==='action'){
       cfg.action143.sequence=['monkey','falcon','bee','wind','spider','vortex'];cfg.action143.first=5;cfg.action143.interval=12;cfg.action143.maxAttacks=12;cfg.defense152=['cut','shield','spray','fan','anchor'];cfg.bee=1;cfg.bird=1;
@@ -165,7 +167,7 @@
 
     var g = { cfg: cfg, n: n, demo: !!demo, engine: newEngine(), hang: [], dyn: [], obst: [], fx: [], parts: [], bees: [], bird: null,
       time: 0, state: 'play', shake: 0, extra: 0, birdDone: 0, popped: 0, powerUsed: 0, maxStack: 0, gesture: 0, bombList: [], clouds: [],
-      stuckT: 0, fullT: 0, theme: THEMES[cfg.world],variant155:variant,assist155:help,limit155:variant==='speed'?60:variant==='timed'?Math.max(60,Math.ceil(cfg.count*2.5)):0,lastProgress155:0,hintAt155:18 }; 
+      stuckT: 0, fullT: 0, theme: THEMES[cfg.world],variant155:variant,assist155:help,limit155:variant==='online'&&ONL172?Math.ceil(ONL172.durationMs/1000):variant==='speed'?60:variant==='timed'?Math.max(60,Math.ceil(cfg.count*2.5)):0,lastProgress155:0,hintAt155:18 }; 
     for (var i = 0; i < 6; i++) g.clouds.push({ x: rnd() * W, y: 120 + rnd() * 380, s: .6 + rnd() * .9, v: 4 + rnd() * 9 });
 
     var topBar = (variant==='classic'?76:120), bottomBar = Math.ceil(((demo?12:dockHeight161(cfg))+Math.max(0,(window.innerHeight-H*scale)/2))/scale); // VC161 reserve real footer below basket
@@ -997,7 +999,7 @@
     if (G.state !== 'play') return;
     G.time += dt;
     if(G.limit155 && G.time>=G.limit155){G.time=G.limit155;refreshMode155();return finishChallenge155(G.variant155==='speed','time');}
-    refreshMode155();adaptive155();
+    refreshMode155();adaptive155();if(G.variant155==='online'&&window.ZF_ONLINE172)window.ZF_ONLINE172.tick(G);
     updateAction133(dt);
     refreshDefense149(false);
     if(G.freezeUntil>G.time)return;
@@ -1187,7 +1189,7 @@
     if(pair.length&&!G.assistSwap160)toast(save.lang==='ar'?'جرّب الفاكهة المضيئة':'Try the highlighted fruit');
   }
 
-  function finishChallenge155(win,reason){if(!G||G.state!=='play')return;var v=G.variant155;G.state=win?'won':'lost';var s=G.matchScore155||0,k=v+'_'+G.n,r=save.records155[k]||{};if(v==='speed'){r.best=Math.max(r.best||0,s);}else if(win){r.wins=(r.wins||0)+1;r.bestTime=Math.min(r.bestTime||Infinity,Math.ceil(G.time));}save.records155[k]=r;persist();(win?SFX.win:SFX.lose)();$('challengeTitle155').textContent=v==='speed'?(save.lang==='ar'?'نتيجة السرعة':'Speed result'):win?t('win'):(reason==='time'?(save.lang==='ar'?'انتهى الوقت':'Time is up'):t('full'));$('challengeResult155').textContent=(save.lang==='ar'?'الفواكه المطابقة: ':'Matched fruit: ')+s+' / '+G.total;$('challengeBest155').textContent=v==='speed'?(save.lang==='ar'?'أفضل نتيجة: ':'Best score: ')+r.best:(r.bestTime?(save.lang==='ar'?'أفضل وقت: ':'Best time: ')+r.bestTime+'s':'');$('pChallenge155').classList.remove('hidden');}
+  function finishChallenge155(win,reason){if(!G||G.state!=='play')return;var v=G.variant155;if(v==='online'&&!G.demo)return onlineEnd172(win,reason);G.state=win?'won':'lost';var s=G.matchScore155||0,k=v+'_'+G.n,r=save.records155[k]||{};if(v==='speed'){r.best=Math.max(r.best||0,s);}else if(win){r.wins=(r.wins||0)+1;r.bestTime=Math.min(r.bestTime||Infinity,Math.ceil(G.time));}save.records155[k]=r;persist();(win?SFX.win:SFX.lose)();$('challengeTitle155').textContent=v==='speed'?(save.lang==='ar'?'نتيجة السرعة':'Speed result'):win?t('win'):(reason==='time'?(save.lang==='ar'?'انتهى الوقت':'Time is up'):t('full'));$('challengeResult155').textContent=(save.lang==='ar'?'الفواكه المطابقة: ':'Matched fruit: ')+s+' / '+G.total;$('challengeBest155').textContent=v==='speed'?(save.lang==='ar'?'أفضل نتيجة: ':'Best score: ')+r.best:(r.bestTime?(save.lang==='ar'?'أفضل وقت: ':'Best time: ')+r.bestTime+'s':'');$('pChallenge155').classList.remove('hidden');}
   function endLevel(win) {
     if(G.variant155!=='classic')return finishChallenge155(win,'board');
     if (G.state !== 'play') return;
@@ -1542,7 +1544,7 @@
   }
 
   /* ---------------- UI wiring ---------------- */
-  function show(id) { ['sSplash', 'sMenu', 'sLevels','sModes155'].forEach(function (s) { $(s).classList.toggle('hidden', s !== id); }); screen = id; $('hud').classList.add('hidden'); }
+  function show(id) { ['sSplash', 'sMenu', 'sLevels','sModes155','sOnline172'].forEach(function (s) { $(s).classList.toggle('hidden', s !== id); }); screen = id; $('hud').classList.add('hidden'); }
   function updateCoins() { $('coinsTxt').textContent = save.coins; $('menuCoins').textContent = save.coins; }
   function totalStars() { var s = 0; for (var k in save.stars) s += save.stars[k]; return s; }
   function updateCounter() { var c = G ? Math.max(0, G.remaining) : 0; if ($('cntTxt').textContent != c) $('cntTxt').textContent = c; }
@@ -1550,16 +1552,26 @@
   function updateSoundIcons() { var src = 'assets/ui/' + (save.sound ? 'sound_on' : 'sound_off') + '.png'; $('soundImgM').src = src; $('soundImgP').src = src; $('setSound').checked = !!save.sound; $('setVib').checked = !!save.vib; }
 
   function showMenu() {
-    mode = 'menu'; mode155='classic'; hideAllPopups(); show('sMenu');
+    mode = 'menu'; mode155='classic'; ONL172=null; rnd=Math.random; $('hud').classList.remove('online172'); if(window.ZF_ONLINE172)window.ZF_ONLINE172.gameClosed(); hideAllPopups(); show('sMenu');
     $('menuLvl').textContent = save.unlocked; $('menuStars').textContent = totalStars(); updateCoins();
     startDemo();
   }
   function startDemo() { var n = Math.max(1, Math.min(save.unlocked, 12)); G = buildLevel(Math.max(2, n), true); }
+  // VC172 online challenge hooks (used by online.js)
+  function onlineEnd172(win,reason){
+    G.state=win?'won':'lost'; (win?SFX.win:SFX.lose)();
+    if(window.ZF_ONLINE172)window.ZF_ONLINE172.gameEnded({win:win,reason:reason,remaining:Math.max(0,G.remaining|0),total:G.total|0,time:G.time});
+  }
+  function onlinePrepare172(n,seed,durationMs){
+    ONL172={seed:seed>>>0,durationMs:durationMs}; rnd=LV.mulberry32((seed^0x9E3779B9)>>>0); // same random events for everyone
+    startLevel(n,'online'); G.state='wait'; $('hud').classList.add('online172'); return G;
+  }
+  function onlineGo172(){ if(G&&G.variant155==='online'&&G.state==='wait'){G.state='play';G.time=0;} }
   function startLevel(n,variant) {
     if(typeof variant==='string')mode155=variant;
     hideAllPopups(); mode = 'play'; n = Math.max(1, Math.min(LV.MAX_LEVEL, n | 0));
     G = buildLevel(n, false); G.state = 'play';if(G.variant155==='classic'&&G.assist155>=5&&!G.cfg.defense152.length){extendChannel(1);G.powerUsed++;}positionRails154();$('def149_panel').classList.add('hidden');showCut147();
-    show(null); ['sSplash', 'sMenu', 'sLevels'].forEach(function (s) { $(s).classList.add('hidden'); });
+    show(null); ['sSplash', 'sMenu', 'sLevels','sModes155','sOnline172'].forEach(function (s) { $(s).classList.add('hidden'); });
     $('hud').classList.remove('hidden'); $('lvlTxt').textContent = n; updateCoins(); updateCounter();refreshMode155();
     $('cntIcon').src = 'assets/fruits/' + FR[(n * 3) % Math.min(FR.length, 8)].n + '.png';
     var h = $('hint'); h.classList.add('hidden');
@@ -1595,7 +1607,7 @@
     bind('btnLevels', function () { SFX.click(); show('sLevels'); buildLevelGrid(); });
     bind('btnLevelsBack', function () { SFX.click(); showMenu(); });
     bind('btnModes',function(){show('sModes155');$('records155').textContent=(save.lang==='ar'?'أفضل سرعة: ':'Best speed: ')+Math.max(0,...Object.keys(save.records155).filter(k=>k.startsWith('speed_')).map(k=>save.records155[k].best||0));});
-    bind('modesBack155',showMenu);bind('classic155',()=>startLevel(save.unlocked,'classic'));bind('timed155',()=>startLevel(save.unlocked,'timed'));bind('speed155',()=>startLevel(Math.max(51,save.unlocked),'speed'));bind('action155',()=>startLevel(Math.max(21,save.unlocked),'action'));bind('challengeRetry155',()=>startLevel(G.n,G.variant155));bind('challengeHome155',showMenu);
+    bind('modesBack155',showMenu);bind('online172',function(){show('sOnline172');if(window.ZF_ONLINE172)window.ZF_ONLINE172.open();});bind('classic155',()=>startLevel(save.unlocked,'classic'));bind('timed155',()=>startLevel(save.unlocked,'timed'));bind('speed155',()=>startLevel(Math.max(51,save.unlocked),'speed'));bind('action155',()=>startLevel(Math.max(21,save.unlocked),'action'));bind('challengeRetry155',()=>startLevel(G.n,G.variant155));bind('challengeHome155',showMenu);
     bind('btnSettings', function () { SFX.click(); $('pSettings').classList.remove('hidden'); });
     bind('setClose', function () { SFX.click(); $('pSettings').classList.add('hidden'); });
     function toggleSound() { save.sound = save.sound ? 0 : 1; persist(); updateSoundIcons(); SFX.click(); }
@@ -1655,13 +1667,16 @@
     back: function () { // Android back button
       if (!$('pAd').classList.contains('hidden')) return 'ok';
       var ps = ['pSettings', 'pPause', 'pWin', 'pLose','pChallenge155']; for (var i = 0; i < ps.length; i++) if (!$(ps[i]).classList.contains('hidden')) { if (ps[i] === 'pSettings') $('pSettings').classList.add('hidden'); else if (ps[i] === 'pPause') { $('pPause').classList.add('hidden'); if (G) G.state = 'play'; } else showMenu(); return 'ok'; }
+      if (screen === 'sOnline172' && window.ZF_ONLINE172) return window.ZF_ONLINE172.back();
       if (screen === 'sLevels'||screen==='sModes155') { showMenu(); return 'ok'; }
+      if (mode === 'play' && G && G.variant155 === 'online') { if (window.ZF_ONLINE172) window.ZF_ONLINE172.askLeave(); return 'ok'; }
       if (mode === 'play') { if (G && G.state === 'play') { G.state = 'paused'; $('pPause').classList.remove('hidden'); } return 'ok'; }
       return 'exit';
     },
     // test helpers
     get G() { return G; }, isVisible: function(e){return !!G && visibleFruit(G,e);}, scare: scareBird, start: startLevel, release: releaseFruit, save: save, menu: showMenu,
     advance: function (sec) { var n = Math.round(sec * 60); for (var i = 0; i < n; i++) update(1 / 60); },
+    show: show, lang: function(){return save.lang;}, onlinePrepare: onlinePrepare172, onlineGo: onlineGo172, endLevel: function(w){return endLevel(w);},
     render: render, useDefense149:useDefense149, buyDefense149:buyDefense149, activeDefense149:activeDefense149, cutWeb147:cutWeb147, hazardTap144:hazardTap144, monkeyTap142:monkeyTap142, action134:action134, arm133:arm133, hand133:hand133, swap133:swap133
   };
 
