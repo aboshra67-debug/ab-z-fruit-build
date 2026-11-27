@@ -490,7 +490,8 @@
   function rng0(seed) { return LV.mulberry32(seed); }
 
   var HANG_CATEGORY=0x0002, NORMAL_CATEGORY=0x0001;
-  var BODY_K = 1.1, DRAW_K = 2.2;        // physics radius ~= drawn radius, so fruits never look like they overlap
+  var BODY_K = 1.02, DRAW_K = 2.2;       // VC166: physics circle matches the visible fruit (sprites are ~0.92 of their box) so stopped fruits touch with no visible gap
+  var SLOPE_DEG166 = 30;
   function geomFor(r, cfg, topBar, bottomBar) {
     var br = r * BODY_K;                                   // physics radius of a fruit
     var cw = Math.round(r * DRAW_K * 1.2);                 // like the original: channel is ~1.2x the fruit diameter
@@ -500,7 +501,7 @@
     var floorBase = dockY - basketRoom - extensionRoom;
     var depth = cap * br * 2 * 0.99 - r * 0.30; // VC159: compact, still fits cap complete fruit centers
     var mouthY = floorBase - depth;
-    var slopeRise = clamp((mouthY - topBar) * 0.090, 64, 92);   // gentle ~30 degree funnel like the original
+    var slopeRun = W / 2 - cw / 2, slopeRise = slopeRun * Math.tan(SLOPE_DEG166 * Math.PI / 180);   // VC166: real slope angle (was ~12 degrees)
     // Five monotonic terrain profiles. Both slopes always lead downhill to the same mouth.
     // Keep the four-slot channel geometry and the integration/feed algorithms unchanged.
     var profile = [[1,1],[1.15,.94],[.94,1.15],[1.12,1.12],[.91,.91]][cfg.layout || 0];
