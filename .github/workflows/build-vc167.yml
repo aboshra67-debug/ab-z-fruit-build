@@ -1,7 +1,7 @@
-name: Build VC166 (test-key signed)
+name: Build VC167 (test-key signed)
 on:
   push:
-    branches: [ vc166-build ]
+    branches: [ vc167-build ]
 permissions:
   contents: write
 jobs:
@@ -23,20 +23,20 @@ jobs:
       - name: Verify and collect
         run: |
           mkdir -p out
-          cp app/build/outputs/apk/debug/app-debug.apk out/ABZFruit_VC166.apk
+          cp app/build/outputs/apk/debug/app-debug.apk out/ABZFruit_VC167.apk
           BT=$(ls -d $ANDROID_HOME/build-tools/* | sort -V | tail -1)
-          { echo "== apksigner verify"; $BT/apksigner verify --verbose --print-certs out/ABZFruit_VC166.apk;
-            echo "== zipalign -c 4"; $BT/zipalign -c -v 4 out/ABZFruit_VC166.apk | tail -3;
-            echo "== badging"; $BT/aapt2 dump badging out/ABZFruit_VC166.apk | grep -E "^package|sdkVersion|targetSdk";
-            echo "== sha256"; sha256sum out/ABZFruit_VC166.apk; } > out/VERIFY_VC166.txt 2>&1 || true
-          cat out/VERIFY_VC166.txt
+          { echo "== apksigner verify"; $BT/apksigner verify --verbose --print-certs out/ABZFruit_VC167.apk;
+            echo "== zipalign -c 4"; $BT/zipalign -c -v 4 out/ABZFruit_VC167.apk | tail -3;
+            echo "== badging"; $BT/aapt2 dump badging out/ABZFruit_VC167.apk | grep -E "^package|sdkVersion|targetSdk";
+            echo "== sha256"; sha256sum out/ABZFruit_VC167.apk; } > out/VERIFY_VC167.txt 2>&1 || true
+          cat out/VERIFY_VC167.txt
       - uses: actions/upload-artifact@v4
         with:
-          name: ABZFruit-VC166
+          name: ABZFruit-VC167
           path: out/*
       - name: Commit result back to this branch
         run: |
           git config user.name "build-bot"; git config user.email "build-bot@users.noreply.github.com"
-          git add -f out/ABZFruit_VC166.apk out/VERIFY_VC166.txt
-          git commit -m "VC166 build output (CI)"
-          git push origin HEAD:vc166-build
+          git add -f out/ABZFruit_VC167.apk out/VERIFY_VC167.txt
+          git commit -m "VC167 build output (CI)"
+          git push origin HEAD:vc167-build

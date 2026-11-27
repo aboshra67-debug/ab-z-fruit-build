@@ -136,7 +136,7 @@
 
   function newEngine() {
     var e = Engine.create({ positionIterations: 14, velocityIterations: 10 });
-    e.gravity.y = 1; e.gravity.scale = 0.001458; // VC165: measured from the original game's drops (was 0.004140625)
+    e.gravity.y = 1; e.gravity.scale = 0.001626; // VC166: tuned with frictionAir .002 so the channel-region fall matches the original's measured 0.528 px/frame^2 (VC165 used 0.001458 with frictionAir .008, which measured ~0.36-0.38 in real play)
     return e;
   }
 
@@ -476,9 +476,19 @@
     return p.x >= g.chL && p.x <= g.chR && p.y >= g.mouthY && p.y <= g.floorY;
   }
   /* hanging fruits are solid: a fruit that falls onto them stops until the fruit below is released */
+  // VC166: collision body shaped like the visible fruit (convex, centrally symmetric hull of the sprite), so a fruit stops exactly where its picture touches another.
+  function fruitBody166(e, x, y, opts, r) {
+    r = r || G.r;
+    var fk = typeof e.kind === 'number' && e.kind >= 0 && !e.bomb ? FR[e.kind % FR.length] : null, h = fk && window.ZF_HULLS && window.ZF_HULLS[fk.n]; if (h && h.length < 6) h = null; // plain rectangles (cut halves) keep the round collider
+    if (!h) return Bodies.circle(x, y, r * BODY_K, opts);
+    var size = r * DRAW_K, a = e.visualAngle || 0, c = Math.cos(a), sn = Math.sin(a);
+    var v = h.map(function (q) { var px = q[0] * size, py = q[1] * size; return { x: px * c - py * sn, y: px * sn + py * c }; });
+    var b = Bodies.fromVertices(x, y, [v], opts);
+    return b || Bodies.circle(x, y, r * BODY_K, opts);
+  }
   function hbOn(g, e) {
     if (e.hb || e.plateOutgoing) return;
-    e.hb = Bodies.circle(e.x, e.y, g.r * BODY_K, { isStatic: true, friction: .025, frictionStatic: 0, restitution: 0, collisionFilter:{category:HANG_CATEGORY,mask:0xffffffff}, label: 'hang' });
+    e.hb = fruitBody166(e, e.x, e.y, { isStatic: true, friction: .025, frictionStatic: 0, restitution: 0, collisionFilter:{category:HANG_CATEGORY,mask:0xffffffff}, label: 'hang' }, g.r);
     Composite.add(g.engine.world, e.hb);
   }
   function hbOff(e) { if (e.hb) { Composite.remove(G.engine.world, e.hb); e.hb = null; } }
@@ -554,7 +564,7 @@
     if(clash){if(e.pendingDrop)return true;if(G.hang.filter(function(f){return f.pendingDrop;}).length>=3)return false;e.pendingDrop=true;e.wob=.25;return true;}
     e.pendingDrop=false;hbOff(e);
     e.state = 'fall'; e.mystery = false;
-    var b = Bodies.circle(e.x, e.y, G.r * BODY_K, { restitution: .05, friction: .14, frictionStatic: .022, frictionAir: .008, density: .0016, collisionFilter:{category:NORMAL_CATEGORY,mask:0xffffffff}, label: 'fruit' });
+    var b = fruitBody166(e, e.x, e.y, { restitution: .05, friction: .14, frictionStatic: .022, frictionAir: .002, density: .0016, collisionFilter:{category:NORMAL_CATEGORY,mask:0xffffffff}, label: 'fruit' });
     // Start from rest at the exact selected position; gravity alone releases it.
     b.ent = e; e.body = b; e.idle = 0; Composite.add(G.engine.world, b);
     G.hang.splice(G.hang.indexOf(e), 1); G.dyn.push(e);
