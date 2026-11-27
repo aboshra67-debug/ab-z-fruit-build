@@ -1037,7 +1037,10 @@
           var a = d[i], b = d[j];
           if (a.kind !== b.kind || !inMatchChannel(G,a) || !inMatchChannel(G,b)) continue;
           var dx = a.body.position.x - b.body.position.x, dy = a.body.position.y - b.body.position.y, rr = G.r * BODY_K * 2 * 1.06;
-          if (dx * dx + dy * dy < rr * rr) { popPair(a, b); G.chain++; merged = true; break; }
+          // VC171: same-kind fruits match when their real (shaped) bodies touch, not by a fixed circle distance.
+          var hit = dx * dx + dy * dy < rr * rr;
+          if (!hit && dx * dx + dy * dy < (G.r * DRAW_K * 1.5) * (G.r * DRAW_K * 1.5)) { var cl = Matter.Collision.collides(a.body, b.body); hit = !!(cl && cl.collided !== false); }
+          if (hit) { popPair(a, b); G.chain++; merged = true; break; }
         }
       }
     }
