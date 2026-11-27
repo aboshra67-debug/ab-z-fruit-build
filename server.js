@@ -21,8 +21,13 @@ const CFG = {
   minFinishMs: +env('MIN_FINISH_MS', 15000),         // a clear faster than this is rejected as impossible
   lobbyIdleMs: +env('LOBBY_IDLE_MS', 10 * 60 * 1000),
   doneKeepMs: +env('DONE_KEEP_MS', 2 * 60 * 1000),
-  graceMs: +env('GRACE_MS', 20000),                  // after time is up, wait this long for late reports
+  timeupGraceMs: +env('TIMEUP_GRACE_MS', 2000),      // after time is up, wait this long for final reports
   levels: { easy: +env('LEVEL_EASY', 10), medium: +env('LEVEL_MEDIUM', 60), hard: +env('LEVEL_HARD', 150) },
+  styleLevels: {                                     // per style: race = levels above; speed/action need bigger boards
+    speed: { easy: +env('SPEED_EASY', 51), medium: +env('SPEED_MEDIUM', 100), hard: +env('SPEED_HARD', 200) },
+    action: { easy: +env('ACTION_EASY', 21), medium: +env('ACTION_MEDIUM', 60), hard: +env('ACTION_HARD', 150) }
+  },
+  speedDurationMs: +env('SPEED_DURATION', 60) * 1000,
   durations: { easy: +env('DUR_EASY', 240) * 1000, medium: +env('DUR_MEDIUM', 360) * 1000, hard: +env('DUR_HARD', 480) * 1000 }
 };
 
@@ -49,6 +54,9 @@ function addCoins(id, n) { const w = wallet(id); w.coins = Math.max(0, w.coins +
 const rooms = new Map();            // code -> room
 const byDevice = new Map();         // deviceId -> code
 const DIFFS = ['easy', 'medium', 'hard'];
+const STYLES = ['race', 'speed', 'action'];
+function roomLevel(room) { return room.style === 'race' ? CFG.levels[room.difficulty] : CFG.styleLevels[room.style][room.difficulty]; }
+function roomDuration(room) { return room.style === 'speed' ? CFG.speedDurationMs : CFG.durations[room.difficulty]; }
 
 function newCode() {
   for (let i = 0; i < 200; i++) { const c = String(crypto.randomInt(0, 10000)).padStart(4, '0'); if (!rooms.has(c)) return c; }
@@ -57,12 +65,12 @@ function newCode() {
 const send = (ws, o) => { if (ws && ws.readyState === 1) ws.send(JSON.stringify(o)); };
 function publicPlayers(room) {
   return [...room.players.values()].map(p => ({
-    id: p.pub, name: p.name, host: p.id === room.host, remaining: p.remaining, total: p.total, state: p.state, timeMs: p.timeMs, online: !!(p.ws && p.ws.readyState === 1)
+    id: p.pub, name: p.name, host: p.id === room.host, remaining: p.remaining, total: p.total, score: p.score, state: p.state, timeMs: p.timeMs, online: !!(p.ws && p.ws.readyState === 1)
   }));
 }
 function broadcast(room, o) { for (const p of room.players.values()) send(p.ws, o); }
 function roomView(room) {
-  return { code: room.code, difficulty: room.difficulty, level: CFG.levels[room.difficulty], durationMs: CFG.durations[room.difficulty], fee: CFG.entryFee, state: room.state, players: publicPlayers(room), max: CFG.maxPlayers };
+  return { code: room.code, style: room.style, difficulty: room.difficulty, level: roomLevel(room), durationMs: roomDuration(room), fee: CFG.entryFee, state: room.state, players: publicPlayers(room), max: CFG.maxPlayers };
 }
 function pushRoom(room) { broadcast(room, { t: 'room', room: roomView(room) }); }
 
@@ -83,6 +91,9 @@ function touchLobby(room) {
 /* ---------- ranking + payout ---------- */
 function rankPlayers(room) {
   const list = [...room.players.values()];
+  if (room.style === 'speed') { // most matched fruit wins; ties: cleared earlier, then reached the score earlier
+    return list.sort((a, b) => ((b.score || 0) - (a.score || 0)) || ((a.timeMs == null ? 1e12 : a.timeMs) - (b.timeMs == null ? 1e12 : b.timeMs)) || ((a.lastAt || 0) - (b.lastAt || 0)));
+  }
   const cleared = list.filter(p => p.state === 'finished').sort((a, b) => a.timeMs - b.timeMs);
   const rest = list.filter(p => p.state !== 'finished').sort((a, b) => (a.remaining - b.remaining) || ((a.lastAt || 0) - (b.lastAt || 0)));
   return cleared.concat(rest);
@@ -104,12 +115,12 @@ function finishRoom(room) {
   let given = 0;
   shares.forEach((s, i) => { if (ranked[i] && ranked[i].paid) { prizes[i] = Math.floor(pot * s); given += prizes[i]; } });
   if (prizes.length && pot - given > 0) prizes[0] += pot - given; // rounding remainder to first place
-  const out = ranked.map((p, i) => ({ place: i + 1, id: p.pub, name: p.name, state: p.state, remaining: p.remaining, timeMs: p.timeMs, prize: prizes[i] }));
+  const out = ranked.map((p, i) => ({ place: i + 1, id: p.pub, name: p.name, state: p.state, remaining: p.remaining, score: p.score || 0, timeMs: p.timeMs, prize: prizes[i] }));
   ranked.forEach((p, i) => { if (prizes[i]) addCoins(p.id, prizes[i]); p.paid = false; });
   saveWallets(true);
   for (const p of room.players.values()) {
     if (byDevice.get(p.id) === room.code) byDevice.delete(p.id);
-    send(p.ws, { t: 'result', ranking: out, pot, coins: wallet(p.id).coins });
+    send(p.ws, { t: 'result', style: room.style, ranking: out, pot, coins: wallet(p.id).coins });
   }
   room.timer = setTimeout(() => rooms.delete(room.code), CFG.doneKeepMs);
 }
@@ -123,16 +134,18 @@ function startRoom(room) {
   room.state = 'countdown';
   room.seed = crypto.randomInt(1, 2 ** 31 - 1);
   room.startAt = Date.now() + CFG.countdownMs;
-  const dur = CFG.durations[room.difficulty];
-  broadcast(room, { t: 'start', seed: room.seed, level: CFG.levels[room.difficulty], difficulty: room.difficulty, durationMs: dur, countdownMs: CFG.countdownMs, serverNow: Date.now(), startAt: room.startAt });
-  for (const p of room.players.values()) { p.state = 'playing'; p.remaining = null; p.timeMs = null; }
+  const dur = roomDuration(room);
+  broadcast(room, { t: 'start', style: room.style, seed: room.seed, level: roomLevel(room), difficulty: room.difficulty, durationMs: dur, countdownMs: CFG.countdownMs, serverNow: Date.now(), startAt: room.startAt });
+  for (const p of room.players.values()) { p.state = 'playing'; p.remaining = null; p.timeMs = null; p.score = 0; p.total = null; }
   clearTimeout(room.idle);
   room.timer = setTimeout(() => {
     room.state = 'playing';
-    room.timer = setTimeout(() => { // time is up: unfinished players stop at their last report
-      for (const p of room.players.values()) if (p.state === 'playing') p.state = 'timeout';
+    room.timer = setTimeout(() => { // time is up: players get a short grace to send their final report, then stragglers stop at their last report
       broadcast(room, { t: 'timeup' });
-      setTimeout(() => finishRoom(room), CFG.graceMs > 0 ? Math.min(CFG.graceMs, 2000) : 0);
+      room.timer = setTimeout(() => {
+        for (const p of room.players.values()) if (p.state === 'playing') p.state = 'timeout';
+        finishRoom(room);
+      }, CFG.timeupGraceMs);
     }, dur);
   }, CFG.countdownMs);
   pushRoom(room);
@@ -197,7 +210,7 @@ function handle(ws, m) {
     const room = rooms.get(byDevice.get(id));
     if (room) {
       const p = room.players.get(id);
-      if (p) { p.ws = ws; p.name = ws.name || p.name; send(ws, { t: 'room', room: roomView(room) }); if (room.state !== 'lobby' && room.state !== 'done') send(ws, { t: 'start', seed: room.seed, level: CFG.levels[room.difficulty], difficulty: room.difficulty, durationMs: CFG.durations[room.difficulty], countdownMs: Math.max(0, room.startAt - Date.now()), serverNow: Date.now(), startAt: room.startAt, resumed: true }); pushRoom(room); }
+      if (p) { p.ws = ws; p.name = ws.name || p.name; send(ws, { t: 'room', room: roomView(room) }); if (room.state !== 'lobby' && room.state !== 'done') send(ws, { t: 'start', style: room.style, seed: room.seed, level: roomLevel(room), difficulty: room.difficulty, durationMs: roomDuration(room), countdownMs: Math.max(0, room.startAt - Date.now()), serverNow: Date.now(), startAt: room.startAt, resumed: true }); pushRoom(room); }
     }
     return;
   }
@@ -211,7 +224,7 @@ function handle(ws, m) {
     const diff = DIFFS.includes(m.difficulty) ? m.difficulty : 'medium';
     if (w.coins < CFG.entryFee) return send(ws, { t: 'error', code: 'no_coins', coins: w.coins, fee: CFG.entryFee });
     const code = newCode(); if (!code) return send(ws, { t: 'error', code: 'busy' });
-    const room = { code, difficulty: diff, host: ws.id, state: 'lobby', players: new Map(), created: Date.now() };
+    const room = { code, style: STYLES.includes(m.style) ? m.style : 'race', difficulty: diff, host: ws.id, state: 'lobby', players: new Map(), created: Date.now() };
     rooms.set(code, room);
     addPlayer(room, ws);
     touchLobby(room);
@@ -246,6 +259,11 @@ function handle(ws, m) {
     if (!DIFFS.includes(m.difficulty)) return send(ws, { t: 'error', code: 'bad_difficulty' });
     room.difficulty = m.difficulty; touchLobby(room); return pushRoom(room);
   }
+  if (m.t === 'style') {
+    if (room.host !== ws.id || room.state !== 'lobby') return send(ws, { t: 'error', code: 'not_host' });
+    if (!STYLES.includes(m.style)) return send(ws, { t: 'error', code: 'bad_style' });
+    room.style = m.style; touchLobby(room); return pushRoom(room);
+  }
   if (m.t === 'start') {
     if (room.host !== ws.id) return send(ws, { t: 'error', code: 'not_host' });
     if (room.state !== 'lobby') return send(ws, { t: 'error', code: 'started' });
@@ -260,6 +278,7 @@ function handle(ws, m) {
     if (!(rem >= 0 && tot > 0 && rem <= tot)) return;
     if (!p.total) p.total = tot;
     if (tot !== p.total) return;
+    const sc = Math.floor(+m.score); if (sc >= 0 && sc <= tot && sc >= (p.score || 0)) p.score = sc;
     if (p.remaining === null || rem <= p.remaining) { p.remaining = rem; p.lastAt = Date.now(); }
     if (!room.lastPush || Date.now() - room.lastPush > 700) { room.lastPush = Date.now(); pushRoom(room); }
     return;
@@ -268,14 +287,15 @@ function handle(ws, m) {
     if (room.state !== 'playing' || p.state !== 'playing') return;
     const el = Date.now() - room.startAt;
     if (el < CFG.minFinishMs) { return send(ws, { t: 'error', code: 'too_fast' }); }
-    if (el > CFG.durations[room.difficulty] + 1500) return;
-    p.state = 'finished'; p.remaining = 0; p.timeMs = el; p.lastAt = Date.now();
+    if (el > roomDuration(room) + 1500) return;
+    p.state = 'finished'; p.remaining = 0; p.timeMs = el; p.lastAt = Date.now(); if (p.total) p.score = p.total;
     pushRoom(room); return checkDone(room);
   }
   if (m.t === 'lost') { // channel overflowed, out of the round
     if (room.state !== 'playing' || p.state !== 'playing') return;
     const rem = Math.floor(+m.remaining);
     if (rem >= 0 && (!p.total || rem <= p.total) && (p.remaining === null || rem <= p.remaining)) p.remaining = rem;
+    const sc2 = Math.floor(+m.score); if (sc2 >= 0 && (!p.total || sc2 <= p.total) && sc2 >= (p.score || 0)) p.score = sc2;
     p.state = 'lost'; p.lastAt = Date.now();
     pushRoom(room); return checkDone(room);
   }
@@ -285,7 +305,7 @@ function handle(ws, m) {
 function addPlayer(room, ws) {
   const id = ws.id;
   addCoins(id, -CFG.entryFee);
-  room.players.set(id, { id, pub: pubId(id), name: ws.name, ws, paid: true, state: 'lobby', remaining: null, total: null, timeMs: null, lastAt: 0 });
+  room.players.set(id, { id, pub: pubId(id), name: ws.name, ws, paid: true, state: 'lobby', remaining: null, total: null, score: 0, timeMs: null, lastAt: 0 });
   byDevice.set(id, room.code);
   send(ws, { t: 'wallet', coins: wallet(id).coins });
 }

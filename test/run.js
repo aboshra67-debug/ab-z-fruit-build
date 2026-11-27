@@ -1,7 +1,7 @@
 // Integration tests: real WebSocket clients against the real server (fast timings).
 const os = require('os'), path = require('path'), fs = require('fs');
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'zfs-'));
-Object.assign(process.env, { DATA_DIR: tmp, COUNTDOWN_MS: '150', MIN_FINISH_MS: '300', DUR_EASY: '2', DUR_MEDIUM: '3', LOBBY_IDLE_MS: '1500', DONE_KEEP_MS: '500' });
+Object.assign(process.env, { DATA_DIR: tmp, COUNTDOWN_MS: '150', MIN_FINISH_MS: '300', DUR_EASY: '2', DUR_MEDIUM: '3', SPEED_DURATION: '2', TIMEUP_GRACE_MS: '600', LOBBY_IDLE_MS: '1500', DONE_KEEP_MS: '500' });
 const WebSocket = require('ws');
 const S = require('../server.js');
 let port, fails = 0, checks = 0;
@@ -106,6 +106,35 @@ const coins = c => S.wallet(c.id).coins;
 
   // lobby idle closes and refunds
   const idl = new C('Idle'); await idl.open(); idl.send({ t: 'create', difficulty: 'easy' }); await idl.wait('created'); const cl2 = await idl.wait('closed', null, 3000); ok(cl2.reason === 'idle' && coins(idl) === 500, 'idle lobby closes + refund');
+
+
+  // styles: host picks the style in the lobby after players joined
+  const s1h = new C('SH'), s2g = new C('SG'); await s1h.open(); await s2g.open();
+  s1h.send({ t: 'create', difficulty: 'easy' }); const sc = await s1h.wait('created'); ok(sc.room.style === 'race', 'default style is race');
+  s2g.send({ t: 'join', code: sc.code }); await s2g.wait('joined');
+  s2g.send({ t: 'style', style: 'speed' }); ok((await s2g.wait('error')).code === 'not_host', 'only host picks the style');
+  s1h.send({ t: 'style', style: 'nonsense' }); ok((await s1h.wait('error')).code === 'bad_style', 'unknown style rejected');
+  s1h.send({ t: 'style', style: 'action' }); let rv = await s2g.wait('room', m => m.room.style === 'action'); ok(rv.room.level === 21, 'action easy level 21 (got ' + rv.room.level + ')');
+  s1h.send({ t: 'style', style: 'speed' }); rv = await s2g.wait('room', m => m.room.style === 'speed'); ok(rv.room.level === 51 && rv.room.durationMs === 2000, 'speed easy level 51, fixed duration (got ' + rv.room.level + '/' + rv.room.durationMs + ')');
+  s1h.send({ t: 'start' }); const sst = await s1h.wait('start'); await s2g.wait('start'); ok(sst.style === 'speed' && sst.durationMs === 2000, 'start carries style + 60s-style duration');
+  await sleep(300);
+  s1h.send({ t: 'progress', remaining: 30, total: 60, score: 14 }); s2g.send({ t: 'progress', remaining: 40, total: 60, score: 8 });
+  await sleep(100); s2g.send({ t: 'progress', remaining: 20, total: 60, score: 22 });
+  await s1h.wait('timeup', null, 4000); // final reports inside the grace window still count
+  s1h.send({ t: 'lost', remaining: 12, score: 30 });
+  const rsp = await s1h.wait('result', null, 5000);
+  ok(rsp.style === 'speed' && rsp.ranking[0].name === 'SH' && rsp.ranking[0].score === 30 && rsp.ranking[1].score === 22, 'speed ranks by score, final report in grace counts (' + rsp.ranking.map(r => r.name + ':' + r.score) + ')');
+  ok(rsp.ranking[0].prize === 200 && coins(s1h) === 600, 'speed winner gets 200');
+  // speed tie: same score -> cleared earlier wins
+  const q1 = new C('Q1'), q2 = new C('Q2'); await q1.open(); await q2.open();
+  q1.send({ t: 'create', difficulty: 'easy' }); const qc = await q1.wait('created'); q2.send({ t: 'join', code: qc.code }); await q2.wait('joined'); q1.send({ t: 'style', style: 'speed' }); await q2.wait('room', m => m.room.style === 'speed');
+  q1.send({ t: 'start' }); await q1.wait('start'); await q2.wait('start'); await sleep(400);
+  q1.send({ t: 'progress', remaining: 10, total: 20, score: 10 }); q2.send({ t: 'progress', remaining: 10, total: 20, score: 10 });
+  await sleep(30); q2.send({ t: 'lost', remaining: 10, score: 10 }); await sleep(30); q1.send({ t: 'lost', remaining: 10, score: 10 });
+  const rq = await q1.wait('result', null, 5000); ok(rq.ranking[0].name === 'Q2', 'speed tie: reached the score earlier wins');
+  // race still ranks by clear time / remaining
+  const rr = await (async () => { const a1 = new C('R1'), a2 = new C('R2'); await a1.open(); await a2.open(); a1.send({ t: 'create', difficulty: 'easy' }); const c = await a1.wait('created'); a2.send({ t: 'join', code: c.code }); await a2.wait('joined'); a1.send({ t: 'style', style: 'action' }); await a2.wait('room', m => m.room.style === 'action'); a1.send({ t: 'start' }); await a1.wait('start'); await a2.wait('start'); await sleep(400); a2.send({ t: 'finish' }); a1.send({ t: 'lost', remaining: 5, score: 15 }); return a1.wait('result', null, 5000); })();
+  ok(rr.ranking[0].name === 'R2' && rr.ranking[0].prize === 200, 'action style ranks like race (clear first)');
 
   // persistence
   S.saveWallets(true); const disk = JSON.parse(fs.readFileSync(path.join(tmp, 'wallets.json'), 'utf8')); ok(disk[d1.id] && disk[d1.id].coins === 600, 'wallets persisted to disk');
